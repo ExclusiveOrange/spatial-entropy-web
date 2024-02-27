@@ -1,0 +1,23 @@
+{
+  "engines": {
+    "npm": ">=10.1.0"
+  },
+  "name": "spatial-entropy-web",
+  "version": "1.0.0",
+  "description": "web app rewrite of my spatial-entropy-qt project",
+  "scripts": {
+    "build": "webpack --config webpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ExclusiveOrange/spatial-entropy-web.git"
+  },
+  "author": "Atlee Brink",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/ExclusiveOrange/spatial-entropy-web#readme",
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  }
+}

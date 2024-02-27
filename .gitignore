@@ -1,0 +1,10 @@
+*.o
+*.wat
+*.wabt
+*.wasm
+*.js
+*.d.js
+*.tsbuildinfo
+*.map
+js/
+node_modules/
