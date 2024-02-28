@@ -1,9 +1,10 @@
 {
-  "files": [],
-  "include": [],
+  "extends": "./tsconfig.base.json",
+
   "references": [
-    {
-      "path": "./tsconfig"
-    }
-  ]
+    {"path": "ts/tsconfig.main.json"},
+    {"path": "ts/tsconfig.worker.json"}
+  ],
+
+  "exclude": ["node_modules"],
 }
