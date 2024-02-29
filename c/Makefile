@@ -20,7 +20,7 @@ all: ../dist/wasm.wasm # wasm/wasm.wat
 
 # REQUIRED
 ../dist/wasm.wasm: \
-		example.c
+	spatial_entropy_u8.c
 	${COMPILER} ${COMPILE_FLAGS} -o $@ $^
 
 # OPTIONAL

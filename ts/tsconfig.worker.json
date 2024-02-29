@@ -7,10 +7,7 @@
 
   "files": [
     "worker.ts",
-  ],
-
-  "include": [
     "limits.ts",
     "makeLog2Table.ts",
-  ]
+  ],
 }
