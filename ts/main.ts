@@ -3,7 +3,6 @@
 import {B, L} from "./common.js"
 
 (() => {
-
   const worker = new Worker('worker.js')
   const loadButton = L('button', { onclick: () => loadImage() })
   const calcButton = L('button', { onclick: () => calcEntropy() })
