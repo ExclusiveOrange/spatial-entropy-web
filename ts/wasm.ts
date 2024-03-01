@@ -4,27 +4,36 @@
 
 /* Example:
 
-interface MyFunctions {
-  addNumbers: (a: number, b: number) => number
-  addFive: (a: number) => number
+const Imports = <const>{
+  addNumbers: (a: number, b: number) => 0,
+  greet: (name: string) => "",
 }
 
-const myWasm = await loadWasm<MyFunctions>("mywasm.wasm")
+try {
+  const myWasm = await loadWasm("mywasm.wasm", Imports)
+}
+catch (err) {
+  console.err(`failed to load wasm: ${err.message}`)
+}
 
 let result = myWasm.fn.addNumbers(2, 3)
 
 */
 
-export async function loadWasm<Functions>(filename: string) {
-  const { instance } = await WebAssembly
-    .instantiateStreaming(fetch(filename, { method: 'GET', credentials: 'include', mode: 'no-cors' }), {})
+export async function loadWasm
+<ExpectedExports extends {[k in keyof any]: any}>
+(
+  filename: string,
+  expectedExports: ExpectedExports
+) {
+  const { instance } = await WebAssembly.instantiateStreaming(fetch(filename, { method: 'GET', credentials: 'include', mode: 'no-cors' }), {})
   return ({
     instance,
     mem: {
       initialOffset: (instance.exports.memory as WebAssembly.Memory).buffer.byteLength,
       memory: instance.exports.memory as WebAssembly.Memory,
     },
-    fn: instance.exports as Functions
+    exports: getWasmExports<ExpectedExports>(expectedExports, instance.exports)
   })
 }
 
@@ -44,4 +53,30 @@ ${numPagesToGrow} page${numPagesToGrow === 1 ? '' : 's'} (${numBytesToGrow.toLoc
 new size ${(memory.buffer.byteLength + numBytesToGrow).toLocaleString()} bytes`);
 
   memory.grow(numPagesToGrow);
+}
+
+function getWasmExports
+<Expected extends {[k in keyof any]: any}>
+(
+  expected: Expected,
+  exports: WebAssembly.Exports
+) {
+  let ret: {[k in keyof any]: any} = {}
+
+  Object.entries(expected).forEach(([key, value]) => {
+    const expectedType = typeof value
+
+    if (!(key in exports))
+      throw Error(`wasm exports are missing: ${key}: ${expectedType}`)
+
+    const exportedValue = exports[key]
+    const actualType = typeof exportedValue
+
+    if (actualType !== expectedType)
+      throw Error(`wasm exports has: ${key}: ${actualType} but it should have type ${expectedType}`)
+
+    ret[key] = exportedValue
+  })
+
+  return ret as Expected
 }

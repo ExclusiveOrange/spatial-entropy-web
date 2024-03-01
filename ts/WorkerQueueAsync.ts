@@ -17,12 +17,15 @@ export class WorkerQueueAsync {
     })
   }
 
-  postMessageAsync<ReturnType>(data: any & {[WorkerQueueAsync.idKey]: number}, transfer: Transferable[]) {
+  postMessageAsync<ReturnType = any>(data: any & {[WorkerQueueAsync.idKey]: number}, transfer?: Transferable[]) {
     const id = this.id++
     data[WorkerQueueAsync.idKey] = id
     return new Promise<ReturnType>((resolve, reject) => {
       this.resolvers.set(id, data => resolve(data as ReturnType))
-      this.worker.postMessage(data, transfer)
+      if (transfer)
+        this.worker.postMessage(data, transfer)
+      else
+        this.worker.postMessage(data)
     })
   }
 

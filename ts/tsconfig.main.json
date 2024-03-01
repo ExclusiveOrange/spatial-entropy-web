@@ -8,5 +8,6 @@
   "files": [
     "main.ts",
     "common.ts",
+    "WorkerQueueAsync.ts",
   ],
 }
