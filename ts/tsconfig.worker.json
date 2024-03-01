@@ -9,5 +9,6 @@
     "worker.ts",
     "limits.ts",
     "makeLog2Table.ts",
+    "wasm.ts",
   ],
 }

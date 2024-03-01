@@ -14,13 +14,8 @@ static inline int max(int a, int b) {
   return a > b ? a : b;
 }
 
-/* TODO:
-Performance could be improved by only worrying with kernel clamping for the edges of the image.
-The interior could use a different set of loops that doesn't bounds check,
-and it could precompute a reciprocal of the pixel count.
-*/
-
 __attribute__((export_name("spatial_entropy_u8")))
+// WARNING: if you change this signature then change it in the corresponding d.ts file
 void spatial_entropy_u8(
   const int radius,
   const uint8_t log2_table[(radius + 1 + radius) * (radius + 1 + radius)],
