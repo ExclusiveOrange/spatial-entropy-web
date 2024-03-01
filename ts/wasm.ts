@@ -75,6 +75,15 @@ function getWasmExports
     if (actualType !== expectedType)
       throw Error(`wasm exports has: ${key}: ${actualType} but it should have type ${expectedType}`)
 
+    if (expectedType === 'function') {
+      console.log(expected[key])
+      const expectedNumParams = value.length
+      const actualNumParams = (exportedValue as Function).length
+
+      if (actualNumParams !== expectedNumParams)
+        throw Error(`exported function ${key} takes ${actualNumParams} parameters but should take ${expectedNumParams} parameters`)
+    }
+
     ret[key] = exportedValue
   })
 

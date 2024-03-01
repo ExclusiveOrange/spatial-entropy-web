@@ -11,4 +11,8 @@
     "makeLog2Table.ts",
     "wasm.ts",
   ],
+
+  "include": [
+    "wasm/spatial_entropy_u8.ts",
+  ]
 }
