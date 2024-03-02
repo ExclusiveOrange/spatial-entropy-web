@@ -141,7 +141,7 @@ import {B, L} from "./common.js"
     const message = e.data
     console.log(`main: got message from worker`)
     if ('err' in message)
-      console.error(`main: message contains an error:`, message.err)
+      console.error(`main: message contains an error:`, message.err, message.err.cause)
     else if ('return' in message)
       console.log(`main: message contains a return:`, message.return)
     else

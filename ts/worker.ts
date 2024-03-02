@@ -14,70 +14,66 @@ const WASM_IMPORTS = <const>{
 }
 type JOB_NAME = keyof typeof WASM_IMPORTS
 
-type JobFailure = { success: false, err: Error }
-type JobSuccess = { success: true, return: any, transferables?: Transferable[] }
-type JobResult = JobFailure | JobSuccess
+type JobResult = { return: any, transferables?: Transferable[] }
 
-const JobDispatch: {[name in JOB_NAME]: (job: Job) => JobResult} = <const>{
+const JobDispatch: {[name in JOB_NAME]: (job: Job, wasm: Wasm) => JobResult} = <const>{
   spatial_entropy_u8: perform_spatial_entropy_u8,
 }
 
 // start loading (fetching) the WebAssembly file immediately
 console.log(`worker: loading wasm from server...`)
 const wasmPromise = loadWasm(WASM_FILENAME, WASM_IMPORTS)
-let wasm: Awaited<typeof wasmPromise> | null = null
+type Wasm = Awaited<typeof wasmPromise>
+
+// call this to get the resolved wasm
+let getWasm = async (): Promise<Wasm> => {
+  try {
+    const wasm = await wasmPromise
+    console.log(`worker: wasm loaded!`)
+    // change the getWasm function to simply return the resolved wasm on subsequent calls
+    getWasm = async () => wasm
+    return wasm
+  }
+  catch (err) {
+    throw Error(`couldn't load wasm file "${WASM_FILENAME}"`, {cause: err})
+  }
+}
 
 // precompute a log2 table since WebAssembly doesn't have a built-in log function
 const log2Table: Float32Array = makeLog2Table((1 + 2 * MAX_KERNEL_RADIUS)**2)
 
 onmessage = async ({ data: job }: MessageEvent<JobUID & Job>) => {
-
-  // make sure wasm has finished loading
-  if (!wasm) {
-    try {
-      wasm = await wasmPromise
-      console.log(`worker: wasm loaded!`)
-    }
-    catch (err) {
-      const message = err instanceof Error ? err.message : err
-      console.error(`couldn't load wasm file "${WASM_FILENAME}" because ${message}`)
-    }
-  }
-
-  // perform the job or fail
-  const result = performJob(job)
-
-  // post a reply
-  if (result.success)
+  try {
+    const wasm = await getWasm()
+    const result = performJob(job, wasm)
     self.postMessage({
       jobUid: job.jobUid,
       return: result.return,
     },
       result.transferables!
     )
-  else
+  } catch (err) {
     self.postMessage({
       jobUid: job.jobUid,
-      err: result.err
+      err: Error(`while trying to perform job "${job.jobName}"`, {cause: err})
     })
+  }
 }
 
 // if job has anything to transfer back then it should return an array of transferables
-function performJob(job: Job): JobResult {
+function performJob(job: Job, wasm: Wasm): JobResult {
   try {
     const fn = JobDispatch[job.jobName as JOB_NAME]
     if (!fn)
-      throw Error(`worker doesn't know how to do job "${job.jobName}"`)
-    return fn(job)
+      throw Error(`worker doesn't know how to do that job`)
+    return fn(job, wasm)
   }
   catch (err) {
-    if (err instanceof Error)
-      return { success: false, err }
-    return { success: false, err: Error(`caught "${err}" while performing job "${job.jobName}"`) }
+    throw err
   }
 }
 
 function perform_spatial_entropy_u8(job: Job): JobResult {
   // TODO
-  return { success: true, return: 100 }
+  return { return: 100 }
 }
