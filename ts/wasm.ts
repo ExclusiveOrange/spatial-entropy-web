@@ -11,12 +11,11 @@ const Imports = <const>{
 
 try {
   const myWasm = await loadWasm("mywasm.wasm", Imports)
+  let result = myWasm.exports.addNumbers(2, 3)
 }
 catch (err) {
-  console.err(`failed to load wasm: ${err.message}`)
+  console.err(`failed to load wasm: ${err.message}`, {cause: err})
 }
-
-let result = myWasm.exports.addNumbers(2, 3)
 
 */
 
@@ -27,7 +26,7 @@ export async function loadWasm
   expectedExports: ExpectedExports
 ) {
   const { instance } = await WebAssembly.instantiateStreaming(fetch(filename, { method: 'GET', credentials: 'include', mode: 'no-cors' }), {})
-  return ({
+  return (<const>{
     instance,
     mem: {
       initialOffset: (instance.exports.memory as WebAssembly.Memory).buffer.byteLength,
@@ -76,7 +75,6 @@ function getWasmExports
       throw Error(`wasm exports has: ${key}: ${actualType} but it should have type ${expectedType}`)
 
     if (expectedType === 'function') {
-      console.log(expected[key])
       const expectedNumParams = value.length
       const actualNumParams = (exportedValue as Function).length
 
