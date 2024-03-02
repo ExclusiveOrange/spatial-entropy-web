@@ -16,7 +16,7 @@ catch (err) {
   console.err(`failed to load wasm: ${err.message}`)
 }
 
-let result = myWasm.fn.addNumbers(2, 3)
+let result = myWasm.exports.addNumbers(2, 3)
 
 */
 
