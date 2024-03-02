@@ -136,7 +136,19 @@ import {B, L} from "./common.js"
 
   B.append(loadButton)
 
-  worker.postMessage('hello from main')
+  // TODO: write up a proper reply hander
+  worker.onmessage = (e: MessageEvent) => {
+    const message = e.data
+    console.log(`main: got message from worker`)
+    if ('err' in message)
+      console.error(`main: message contains an error:`, message.err)
+    else if ('return' in message)
+      console.log(`main: message contains a return:`, message.return)
+    else
+      console.log(`main: message didn't contain an error or a recognized return`)
+  }
+
+  worker.postMessage({jobUid: 0, jobName: 'spatial_entropy_u8', jobArgs: undefined})
 
   function calcEntropy() {
     [loadButton, calcButton].forEach(b => b.disabled = true)

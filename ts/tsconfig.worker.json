@@ -10,9 +10,7 @@
     "limits.ts",
     "makeLog2Table.ts",
     "wasm.ts",
+    "WorkerTask.d.ts",
+    "../c/spatial_entropy_u8.ts",
   ],
-
-  "include": [
-    "wasm/spatial_entropy_u8.ts",
-  ]
 }

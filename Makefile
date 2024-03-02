@@ -17,6 +17,6 @@ js/*.js: tsconfig*.json ts/tsconfig*.json ts/*.ts webpack.config.js
 	tsc -b -f tsconfig.json
 
 clean:
-	$(RM) -rf js
-	$(RM) dist/*.js
+	-$(RM) -rf js
+	-$(RM) dist/*.js
 	cd c && make clean

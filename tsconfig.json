@@ -3,6 +3,6 @@
 
   "references": [
     {"path": "ts/tsconfig.main.json"},
-    {"path": "ts/tsconfig.worker.json"}
+    {"path": "ts/tsconfig.worker.json"},
   ],
 }

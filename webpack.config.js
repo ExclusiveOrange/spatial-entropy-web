@@ -3,8 +3,8 @@ const path = require('path')
 module.exports = {
   mode: 'production',
   entry: {
-    main: './js/main.js',
-    worker: './js/worker.js',
+    main: './js/ts/main.js',
+    worker: './js/ts/worker.js',
   },
   output: {
     filename: '[name].js',

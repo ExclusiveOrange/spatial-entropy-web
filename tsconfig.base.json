@@ -3,7 +3,7 @@
     "composite": true,
     "target": "ES2022",
     "module": "ES2022",
-    "rootDir": "./ts",
+    "rootDir": "./",
     "outDir": "./js",
     "moduleResolution": "Bundler",
     "removeComments": true,
@@ -14,7 +14,6 @@
   },
 
   "exclude": [
-    "js",
-    "node_modules"
+    "**/*",
   ]
 }
