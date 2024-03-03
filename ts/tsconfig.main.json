@@ -9,5 +9,6 @@
     "main.ts",
     "common.ts",
     "WorkerQueueAsync.ts",
+    "WorkerJob.d.ts",
   ],
 }

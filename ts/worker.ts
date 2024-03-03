@@ -3,7 +3,7 @@
 import { MAX_KERNEL_RADIUS } from "./limits.js";
 import { makeLog2Table } from "./makeLog2Table.js";
 import { loadWasm } from "./wasm.js";
-import { Job, JobUID } from "./WorkerTask.js";
+import { Job, JobError, JobSuccess, JobUID } from "./WorkerJob.js";
 
 // WASM function signatures
 import { spatial_entropy_u8 } from "../c/spatial_entropy_u8.js";
@@ -46,31 +46,39 @@ onmessage = async ({ data: job }: MessageEvent<JobUID & Job>) => {
   try {
     const wasm = await getWasm()
     const result = performJob(job, wasm)
-    self.postMessage({
-      jobUid: job.jobUid,
-      return: result.return,
-    },
-      result.transferables!
-    )
+    postJobSuccess(job.jobUid, result.return, result.transferables)
   } catch (err) {
-    self.postMessage({
-      jobUid: job.jobUid,
-      err: Error(`while trying to perform job "${job.jobName}"`, {cause: err})
-    })
+    postJobError(job.jobUid, Error(`while trying to perform job "${job.jobName}"`, { cause: err }))
   }
+}
+
+function postJobError(jobUid: number, error: Error) {
+  const result: JobUID & JobError = {
+    success: false,
+    jobUid,
+    error,
+  }
+  self.postMessage(result)
+}
+
+function postJobSuccess(jobUid: number, returnValue: any, transferables?: Transferable[]) {
+  const result: JobUID & JobSuccess = {
+    success: true,
+    jobUid,
+    return: returnValue,
+  }
+  if (transferables)
+    self.postMessage(result, transferables)
+  else
+    self.postMessage(result)
 }
 
 // if job has anything to transfer back then it should return an array of transferables
 function performJob(job: Job, wasm: Wasm): JobResult {
-  try {
-    const fn = JobDispatch[job.jobName as JOB_NAME]
-    if (!fn)
-      throw Error(`worker doesn't know how to do that job`)
-    return fn(job, wasm)
-  }
-  catch (err) {
-    throw err
-  }
+  const fn = JobDispatch[job.jobName as JOB_NAME]
+  if (!fn)
+    throw Error(`worker doesn't know how to do that job`)
+  return fn(job, wasm)
 }
 
 function perform_spatial_entropy_u8(job: Job): JobResult {

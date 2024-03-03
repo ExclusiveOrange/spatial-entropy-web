@@ -8,3 +8,15 @@ export interface Job {
   jobName: string // such as "spatial_entropy_u8", or whatever was agreed upon
   jobArgs: any    // depends on the job
 }
+
+interface JobError {
+  success: false
+  error: Error
+}
+
+interface JobSuccess {
+  success: true
+  return: any
+}
+
+export type JobResult = JobError | JobSuccess

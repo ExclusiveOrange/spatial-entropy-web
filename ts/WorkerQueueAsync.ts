@@ -1,37 +1,36 @@
 // 2024.02.29 Atlee Brink
 // A class that provides async worker callbacks.
 
-// TODO: not done yet, need to coordinate with the worker what the unique id key will be; maybe can't use a Symbol() here unless it is also communicated once
+import { Job, JobResult, JobUID } from "./WorkerJob.js"
 
 export class WorkerQueueAsync {
   constructor(worker: Worker) {
     this.worker = worker
-    worker.addEventListener('message', (message: MessageEvent) => {
-      const data: any & {[WorkerQueueAsync.idKey]: number} = message.data
-      const id = data[WorkerQueueAsync.idKey]
-      const resolver = this.resolvers.get(id)
-      if (resolver) {
-        resolver(data)
-        this.resolvers.delete(id)
-      }
+    worker.addEventListener('message', ({ data: result }: MessageEvent<JobUID & JobResult>) => {
+      const resolvers = this.pendingJobs.get(result.jobUid)
+      if (!resolvers)
+        throw Error(`worker responded to main with an invalid jobUid`)
+      this.pendingJobs.delete(result.jobUid)
+      if (result.success)
+        resolvers.resolve(result.return)
+      else
+        resolvers.reject(result.error)
     })
   }
 
-  postMessageAsync<ReturnType = any>(data: any & {[WorkerQueueAsync.idKey]: number}, transfer?: Transferable[]) {
-    const id = this.id++
-    data[WorkerQueueAsync.idKey] = id
+  postJobAsync<ReturnType = any>(job: Job, transferables?: Transferable[]): Promise<ReturnType> {
+    const jobUid = this.id++
+    const jobWithUid: Job & JobUID = { jobUid, ...job }
     return new Promise<ReturnType>((resolve, reject) => {
-      this.resolvers.set(id, data => resolve(data as ReturnType))
-      if (transfer)
-        this.worker.postMessage(data, transfer)
+      this.pendingJobs.set(jobUid, {resolve, reject})
+      if (transferables)
+        this.worker.postMessage(jobWithUid, transferables)
       else
-        this.worker.postMessage(data)
+        this.worker.postMessage(jobWithUid)
     })
   }
 
   private readonly worker: Worker
   private id = 0
-  private resolvers = new Map<number, (data: any) => void>()
-
-  static readonly idKey = Symbol()
+  private pendingJobs = new Map<number, {resolve: (value?: any) => void, reject: (reason?: any) => void}>()
 }
