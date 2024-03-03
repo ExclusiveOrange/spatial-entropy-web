@@ -29,3 +29,32 @@ import {B, L} from "./common.js"
   function loadImage() {
   }
 })()
+
+// NOTE: copied from circle-text: getImageFromUser.ts (mine)
+
+// creating <input> and putting it in a <button>
+// fileInput = El('input', {type: 'file', accept: 'image/*', hidden: true}),
+// chooseButton = appendTo(
+//   El('label', {className: 'button'}, {scale: '200%'}),
+//   "Choose an Image File...",
+//   fileInput,
+// ),
+
+// connecting to the <input>
+// function promiseImageFromChooser(fileInput: HTMLInputElement): ImageSourcePromise {
+//   let ret: Partial<ImageSourcePromise> = {}
+
+//   ret.promise = new Promise<ImageSource>((resolve, reject) => {
+//     ret.cancel = reject
+//     fileInput.onchange = null
+//     fileInput.value = ''
+//     fileInput.onchange = () => {
+//       fileInput.files && resolve({ file: fileInput.files[0] })
+//     }
+//   }).finally(() => {
+//     ret.cancel = undefined
+//     fileInput.onchange = null
+//   })
+
+//   return ret as ImageSourcePromise
+// }
