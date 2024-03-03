@@ -83,5 +83,16 @@ function performJob(job: Job, wasm: Wasm): JobResult {
 
 function perform_spatial_entropy_u8(job: Job): JobResult {
   // TODO
-  return { return: 100 }
+  if ('buffer' in job.jobArgs) {
+    const buffer = job.jobArgs.buffer as ArrayBuffer
+    console.log(`in worker: got buffer, length: ${buffer.byteLength}`)
+    const u8arr = new Uint8Array(buffer)
+    const num = Math.min(10, u8arr.length)
+    let strs: string[] = []
+    for (let i = 0; i < num; ++i)
+      strs.push(u8arr[i].toString())
+    console.log(`in worker: first ${num} elements of buffer are: ${strs.join(', ')}`)
+    return { return: { buffer }, transferables: [buffer] }
+  }
+  throw Error(`missing "buffer" argument`)
 }
