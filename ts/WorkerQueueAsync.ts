@@ -18,7 +18,7 @@ export class WorkerQueueAsync {
     })
   }
 
-  postJobAsync<ReturnType = any>(job: Job, transferables?: Transferable[]): Promise<ReturnType> {
+  postJobAsync<ReturnType>(job: Job, transferables?: Transferable[]): Promise<ReturnType> {
     const jobUid = this.id++
     const jobWithUid: Job & JobUID = { jobUid, ...job }
     return new Promise<ReturnType>((resolve, reject) => {

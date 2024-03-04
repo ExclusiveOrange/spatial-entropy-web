@@ -15,7 +15,7 @@ const WASM_IMPORTS = <const>{
 }
 type JOB_NAME = keyof typeof WASM_IMPORTS
 
-type JobResult<ReturnType = { return: any }> = ReturnType & { transferables?: Transferable[] }
+type JobResult<ReturnType = any> = { return: ReturnType, transferables?: Transferable[] }
 
 const JobDispatch: {[name in JOB_NAME]: (job: Job, wasm: Wasm) => JobResult} = <const>{
   spatial_entropy_u8: perform_spatial_entropy_u8,

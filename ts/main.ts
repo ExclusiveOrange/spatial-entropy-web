@@ -1,6 +1,6 @@
 // 2024.02.27 Atlee Brink
 
-import { JobSuccess_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./WorkerJobs.js";
+import { JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./WorkerJobs.js";
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js";
 import {B, L} from "./common.js"
 
@@ -31,6 +31,7 @@ import {B, L} from "./common.js"
   const sourceCanvas = L('canvas', { width: 1, height: 1 })
   const sourceCanvasContext = sourceCanvas.getContext('2d') as CanvasRenderingContext2D
   const entropyCanvas = L('canvas', { width: 1, height: 1 })
+  const entropyCanvasContext = entropyCanvas.getContext('2d') as CanvasRenderingContext2D
 
   B.append(loadButton, calcButton, sourceCanvas, entropyCanvas)
 
@@ -50,30 +51,44 @@ import {B, L} from "./common.js"
     const numPixels = width * height
 
     const sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height)
-    const u32Array = new Uint32Array(sourceImageData.data)
+    const sourceArray = new Uint32Array(sourceImageData.data.buffer)
 
     const pendingJobs = Promise.all([0, 1, 2].map(ichannel => {
 
-      const u8Array = new Uint8ClampedArray(width * height)
+      const channelArray = new Uint8ClampedArray(width * height)
       for (let i = 0; i < numPixels; ++i)
-        u8Array[i] = u32Array[i] >> (ichannel * 8) & 255
+        channelArray[i] = sourceArray[i] >> (ichannel * 8) & 255
 
       const job: Job_spatial_entropy_u8 = {
         jobName: 'spatial_entropy_u8',
         jobArgs: {
-          arrayBuffer: u8Array.buffer,
+          arrayBuffer: channelArray.buffer,
           width,
           height
         }
       }
 
-      return workerQueue.postJobAsync<JobSuccess_spatial_entropy_u8>(job, [job.jobArgs.arrayBuffer])
+      return workerQueue.postJobAsync<JobReturn_spatial_entropy_u8>(job, [job.jobArgs.arrayBuffer])
     }))
 
     pendingJobs.catch(err => console.error(`worker didn't calculate entropy:`, err, err?.cause ?? ''))
     pendingJobs.then(successes => {
-      // TODO
-      console.log('all channels done')
+      const entropyImage = new ImageData(width, height)
+      const entropyArray = new Uint32Array(entropyImage.data.buffer)
+      console.log(`successes:`, successes)
+      const c0 = new Uint8Array(successes[0].arrayBuffer)
+      const c1 = new Uint8Array(successes[1].arrayBuffer)
+      const c2 = new Uint8Array(successes[2].arrayBuffer)
+
+      for (let i = 0; i < numPixels; ++i)
+        entropyArray[i] = 0xff000000 |
+          c0[i] |
+          c1[i] << 8 |
+          c2[i] << 16;
+
+      entropyCanvas.width = width
+      entropyCanvas.height = height
+      entropyCanvasContext.putImageData(entropyImage, 0, 0)
     })
 
   }
