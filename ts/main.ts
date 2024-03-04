@@ -45,15 +45,19 @@ import {B, L} from "./common.js"
   //   .catch(err => console.error(`main got error from worker:`, err, err.cause))
 
   function calculateEntropy() {
+
     const {width, height} = sourceCanvas
+    const numPixels = width * height
+
     const sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height)
     const u32Array = new Uint32Array(sourceImageData.data)
 
     const pendingJobs = Promise.all([0, 1, 2].map(ichannel => {
-      const num = width * height
+
       const u8Array = new Uint8ClampedArray(width * height)
-      for (let i = 0; i < num; ++i)
+      for (let i = 0; i < numPixels; ++i)
         u8Array[i] = u32Array[i] >> (ichannel * 8) & 255
+
       const job: Job_spatial_entropy_u8 = {
         jobName: 'spatial_entropy_u8',
         jobArgs: {
@@ -62,6 +66,7 @@ import {B, L} from "./common.js"
           height
         }
       }
+
       return workerQueue.postJobAsync<JobSuccess_spatial_entropy_u8>(job, [job.jobArgs.arrayBuffer])
     }))
 

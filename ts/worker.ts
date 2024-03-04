@@ -89,7 +89,7 @@ function verifyJob_spatial_entropy_u8(job: Job): job is Job_spatial_entropy_u8 {
     job.jobName === 'spatial_entropy_u8' &&
     'arrayBuffer' in job.jobArgs &&
     job.jobArgs.arrayBuffer instanceof ArrayBuffer &&
-    job.jobArgs.arrayBuffer.length > 0 &&
+    job.jobArgs.arrayBuffer.byteLength > 0 &&
     'width' in job.jobArgs &&
     'height' in job.jobArgs
   )
