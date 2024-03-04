@@ -6,14 +6,14 @@ RM ?= rm
 
 all: dist/*.js dist/wasm.wasm
 	
-dist/%.js: js/*.js
+dist/%.js: js/ts/*.js
 	npm run build
 	@touch dist/*.js
 
 dist/wasm.wasm: c/*.c c/Makefile
 	cd c && make
 
-js/*.js: tsconfig*.json ts/tsconfig*.json ts/*.ts webpack.config.js
+js/ts/*.js: tsconfig*.json ts/tsconfig*.json ts/*.ts webpack.config.js
 	tsc -b -f tsconfig.json
 
 clean:
