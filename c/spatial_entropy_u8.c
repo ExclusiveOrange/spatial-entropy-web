@@ -18,7 +18,7 @@ __attribute__((export_name("spatial_entropy_u8")))
 // WARNING: if you change this signature then change it in the corresponding d.ts file
 void spatial_entropy_u8(
   const int radius,
-  const uint8_t log2_table[(radius + 1 + radius) * (radius + 1 + radius)],
+  const float log2_table[(radius + 1 + radius) * (radius + 1 + radius)],
   const int width,
   const int height,
   const uint8_t in[height][width],
@@ -33,7 +33,7 @@ void spatial_entropy_u8(
     for (int x = 0; x < width; ++x) {
       int counts[256];
 
-      #pragma unroll 16
+      // #pragma unroll 16
       for (int i = 0; i < 256; ++i)
         counts[i] = 0;
 
