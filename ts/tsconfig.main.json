@@ -8,6 +8,8 @@
   "files": [
     "main.ts",
     "common.ts",
+    "loadImageFromFile.ts",
+    "loadImageFromURL.ts",
     "WorkerQueueAsync.ts",
     "WorkerJob.d.ts",
   ],

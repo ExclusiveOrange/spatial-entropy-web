@@ -4,7 +4,8 @@ import { JobResult } from "./WorkerJob.js";
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js";
 import {B, L} from "./common.js"
 
-;(() => {
+;import { loadImageFromFile } from "./loadImageFromFile.js";
+(() => {
   const worker = new Worker('worker.js', {credentials: 'include'})
   const workerQueue = new WorkerQueueAsync(worker)
 
@@ -39,25 +40,6 @@ import {B, L} from "./common.js"
   // workerQueue.postJobAsync<JobResult>({ jobName: 'spatial_entropy_u8', jobArgs: {buffer} }, [buffer])
   //   .then(ret => console.log(`main got response from worker:`, ret))
   //   .catch(err => console.error(`main got error from worker:`, err, err.cause))
-
-  function loadImageFromFile(file: File) {
-    return new Promise<HTMLImageElement>((resolve, reject) => {
-      const reader = new FileReader
-      reader.onload = () => resolve(loadImageFromURL(reader.result as string, file.name))
-      reader.onerror = () => reject(Error(`${file.name} couldn't be loaded: ${reader.error?.message ?? "(this browser's FileReader didn't specify the cause of the error)"}`))
-      reader.readAsDataURL(file)
-    })
-  }
-
-  function loadImageFromURL(url: string, filename: string) {
-    return new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image
-      image.onload = () => resolve(image)
-      image.onerror = (event: Event | string, source?: string, lineno?: number, colno?: number, error?: Error) =>
-        reject(Error(`${filename} was loaded as a file but can't be used as an Image: ${error ?? "(this browser's Image loader didn't specify the cause of the error)"}`))
-      image.src = url
-    })
-  }
 
   function setSourceImage(image: HTMLImageElement) {
     sourceCanvas.width = image.width
