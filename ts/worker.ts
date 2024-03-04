@@ -2,11 +2,12 @@
 
 import { MAX_KERNEL_RADIUS } from "./limits.js";
 import { makeLog2Table } from "./makeLog2Table.js";
-import { loadWasm } from "./wasm.js";
+import { loadWasm, makeWasmMemoryAtLeast } from "./wasm.js";
 import { Job, JobError, JobSuccess, JobUID } from "./WorkerJob.js";
 
 // WASM function signatures
 import { spatial_entropy_u8 } from "../c/spatial_entropy_u8.js";
+import { Job_spatial_entropy_u8, JobReturn_spatial_entropy_u8, JobSuccess_spatial_entropy_u8 } from "./WorkerJobs.js";
 
 const WASM_FILENAME = "wasm.wasm"
 const WASM_IMPORTS = <const>{
@@ -14,7 +15,7 @@ const WASM_IMPORTS = <const>{
 }
 type JOB_NAME = keyof typeof WASM_IMPORTS
 
-type JobResult = { return: any, transferables?: Transferable[] }
+type JobResult<ReturnType = { return: any }> = ReturnType & { transferables?: Transferable[] }
 
 const JobDispatch: {[name in JOB_NAME]: (job: Job, wasm: Wasm) => JobResult} = <const>{
   spatial_entropy_u8: perform_spatial_entropy_u8,
@@ -81,18 +82,59 @@ function performJob(job: Job, wasm: Wasm): JobResult {
   return fn(job, wasm)
 }
 
-function perform_spatial_entropy_u8(job: Job): JobResult {
-  // TODO
-  if ('buffer' in job.jobArgs) {
-    const buffer = job.jobArgs.buffer as ArrayBuffer
-    console.log(`in worker: got buffer, length: ${buffer.byteLength}`)
-    const u8arr = new Uint8Array(buffer)
-    const num = Math.min(10, u8arr.length)
-    let strs: string[] = []
-    for (let i = 0; i < num; ++i)
-      strs.push(u8arr[i].toString())
-    console.log(`in worker: first ${num} elements of buffer are: ${strs.join(', ')}`)
-    return { return: { buffer }, transferables: [buffer] }
-  }
-  throw Error(`missing "buffer" argument`)
+// spatial_entropy_u8
+
+function verifyJob_spatial_entropy_u8(job: Job): job is Job_spatial_entropy_u8 {
+  return (
+    job.jobName === 'spatial_entropy_u8' &&
+    'arrayBuffer' in job.jobArgs &&
+    job.jobArgs.arrayBuffer instanceof ArrayBuffer &&
+    job.jobArgs.arrayBuffer.length > 0 &&
+    'width' in job.jobArgs &&
+    'height' in job.jobArgs
+  )
+}
+
+function perform_spatial_entropy_u8(job: Job, wasm: Wasm): JobResult<JobReturn_spatial_entropy_u8> {
+  if (!verifyJob_spatial_entropy_u8(job))
+    throw Error(`job parameter mismatch in perform_spatial_entropy_u8()`)
+
+  // TODO: get radius from job args
+  const radius = 5
+
+  const arrayBuffer = job.jobArgs.arrayBuffer
+  const inputArray = new Uint8Array(arrayBuffer)
+
+  let memOffset = wasm.mem.initialOffset
+
+  const log2TableOffset = memOffset
+  memOffset += log2Table.BYTES_PER_ELEMENT * log2Table.length
+
+  const inputArrayOffset = memOffset
+  memOffset += inputArray.BYTES_PER_ELEMENT * inputArray.length
+
+  const outputArrayOffset = memOffset
+  memOffset += inputArray.BYTES_PER_ELEMENT * inputArray.length
+
+  makeWasmMemoryAtLeast(wasm.mem.memory, memOffset)
+
+  const wasmLog2Table = new Float32Array(wasm.mem.memory.buffer, log2TableOffset, log2Table.length)
+  wasmLog2Table.set(log2Table)
+
+  const wasmInputArray = new Uint8Array(wasm.mem.memory.buffer, inputArrayOffset, inputArray.length)
+  wasmInputArray.set(inputArray)
+
+  wasm.exports.spatial_entropy_u8(
+    radius,
+    log2TableOffset,
+    job.jobArgs.width,
+    job.jobArgs.height,
+    inputArrayOffset,
+    outputArrayOffset,
+  )
+
+  const wasmOutputArray = new Uint8Array(wasm.mem.memory.buffer, outputArrayOffset, inputArray.length)
+  inputArray.set(wasmOutputArray)
+
+  return { return: { arrayBuffer }, transferables: [arrayBuffer] }
 }

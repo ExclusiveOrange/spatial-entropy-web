@@ -11,6 +11,7 @@
     "makeLog2Table.ts",
     "wasm.ts",
     "WorkerJob.d.ts",
+    "WorkerJobs.d.ts",
     "../c/spatial_entropy_u8.ts",
   ],
 }

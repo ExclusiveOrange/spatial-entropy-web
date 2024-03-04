@@ -12,5 +12,6 @@
     "loadImageFromURL.ts",
     "WorkerQueueAsync.ts",
     "WorkerJob.d.ts",
+    "WorkerJobs.d.ts",
   ],
 }
