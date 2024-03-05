@@ -2,7 +2,7 @@
 // WebAssembly handling.
 // Copied then modified from my Circle Text project.
 
-import { WasmMemory } from "./wasm.types.js"
+import { Wasm } from "./wasm.types.js"
 
 /* Example:
 // TODO: check that this is still valid, I made a bunch of changes and haven't looked over it yet
@@ -21,12 +21,6 @@ catch (err) {
 }
 
 */
-
-export type Wasm<Imports extends {[k in keyof any]: any}> = {
-  instance: WebAssembly.Instance
-  memory: WasmMemory
-  imports: Imports
-}
 
 export async function loadWasm
 <Imports extends {[k in keyof any]: any}>

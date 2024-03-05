@@ -7,6 +7,7 @@
 
   "files": [
     "main.ts",
+    "calculateEntropyU8.ts",
     "common.ts",
     "loadImageFromFile.ts",
     "loadImageFromURL.ts",

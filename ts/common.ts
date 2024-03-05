@@ -6,10 +6,6 @@ export const
   B = D.body,
   O = Object
 
-// Identity function solely for getting TypeScript to check that 'x' actually has the specified type;
-// This should be inlined by a minimizer such as WebPack (it was when I tested it).
-export function I<Type>(x: Type): Type { return x }
-
 // Shorthand for document.createElement and setting properties and styles and appending children.
 export function L<K extends keyof HTMLElementTagNameMap>(
   tagName: K,

@@ -1,8 +1,8 @@
 // 2024.02.27 Atlee Brink
 
-import {B, I, L} from "./common.js"
+import { calculateEntropyU8 } from "./calculateEntropyU8.js";
+import {B, L} from "./common.js"
 import { loadImageFromFile } from "./loadImageFromFile.js"
-import { JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./WorkerJobs.types.js"
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 
 ;(() => {
@@ -58,20 +58,10 @@ async function calculateEntropy(sourceImage: ImageData, workerQueue: WorkerQueue
   const {width, height} = sourceImage
 
   // TODO: splitting could be done on a webworker
-  const jobs = splitImageIntoColorChannels(sourceImage).map(channel => {
-    const job: Job_spatial_entropy_u8 = {
-      jobName: 'spatial_entropy_u8',
-      jobArgs: {
-        arrayBuffer: channel.buffer,
-        width,
-        height
-      }
-    }
-    return workerQueue.postJobAsync<JobReturn_spatial_entropy_u8>(job, [job.jobArgs.arrayBuffer])
-  })
+  const jobs = splitImageIntoColorChannels(sourceImage)
+    .map(channel => calculateEntropyU8(workerQueue, channel, width, height))
 
-  const channels = await Promise.all(jobs)
-  const [c0, c1, c2] = channels.map(c => new Uint8Array(c.arrayBuffer))
+  const [c0, c1, c2] = await Promise.all(jobs)
 
   // TODO: joining could be done on a webworker
   return joinColorChannelsIntoImage(width, height, c0, c1, c2)

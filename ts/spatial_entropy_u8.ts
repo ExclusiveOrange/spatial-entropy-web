@@ -1,4 +1,5 @@
 // 2024.03.04 Atlee Brink
+// wasm interface to spatial_entropy_u8
 
 import { Job } from "./WorkerJob.types.js"
 import { JobResult } from "./WorkerJobs.types.js"
