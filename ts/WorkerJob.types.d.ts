@@ -9,12 +9,12 @@ export interface Job {
   jobArgs: any    // depends on the job
 }
 
-interface JobError {
+export interface JobError {
   success: false
   error: Error
 }
 
-interface JobSuccess {
+export interface JobSuccess {
   success: true
   return: any
 }

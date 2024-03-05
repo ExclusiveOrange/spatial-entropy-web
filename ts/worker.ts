@@ -1,8 +1,8 @@
 // 2024.02.29 Atlee Brink
 
 import { loadWasm, Wasm } from "./wasm.js";
-import { Job, JobError, JobSuccess, JobUID } from "./WorkerJob.js";
-import { WasmMemory } from "./wasmTypes.js";
+import { Job, JobError, JobSuccess, JobUID } from "./WorkerJob.types.js";
+import { WasmMemory } from "./wasm.types.js";
 
 import * as spatial_entropy_u8 from "./spatial_entropy_u8.js";
 

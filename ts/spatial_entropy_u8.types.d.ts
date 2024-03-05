@@ -1,6 +1,6 @@
 // 2024.03.04 Atlee Brink
 
-import { Job, JobSuccess } from "./WorkerJob.js"
+import { Job, JobSuccess } from "./WorkerJob.types.js"
 
 export interface Job_spatial_entropy_u8 extends Job {
   jobName: 'spatial_entropy_u8'

@@ -1,7 +1,7 @@
 // 2024.02.29 Atlee Brink
 // A class that provides async worker callbacks.
 
-import { Job, JobError, JobSuccess, JobUID } from "./WorkerJob.js"
+import { Job, JobError, JobSuccess, JobUID } from "./WorkerJob.types.js"
 
 export class WorkerQueueAsync {
   constructor(worker: Worker) {

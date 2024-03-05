@@ -1,35 +1,13 @@
 // 2024.03.04 Atlee Brink
 
-import { Job, JobSuccess } from "./WorkerJob.js"
-import { JobResult } from "./WorkerJobs.js"
+import { Job } from "./WorkerJob.types.js"
+import { JobResult } from "./WorkerJobs.types.js"
 import { MAX_KERNEL_RADIUS } from "./limits.js"
-import { makeLog2Table } from "./makeLog2Table.js"
-import { WasmMemory } from "./wasmTypes.js"
+import { WasmMemory } from "./wasm.types.js"
 
+import { JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./spatial_entropy_u8.types.js"
 import { spatial_entropy_u8 } from "../c/spatial_entropy_u8.js";
 import { makeWasmMemoryAtLeast } from "./wasm.js"
-
-export interface Job_spatial_entropy_u8 extends Job {
-  jobName: 'spatial_entropy_u8'
-  jobArgs: {
-    arrayBuffer: ArrayBuffer // should also be put in the Transferable[] when posting message to worker
-    width: number
-    height: number
-  }
-}
-
-export interface JobReturn_spatial_entropy_u8 {
-  arrayBuffer: ArrayBuffer // should also be put in the Transferable[] when posting message to main
-}
-
-export type JobSuccess_spatial_entropy_u8 = JobSuccess & JobReturn_spatial_entropy_u8
-
-export interface Job_splitColorChannels extends Job {
-  jobName: 'splitColorChannels'
-  jobArgs: {
-    arrayBuffer: ArrayBuffer // rgba, numpixels is bytelength / 4
-  }
-}
 
 // specify the particular wasm function signature
 export const WASM_IMPORTS = <const>{
@@ -44,15 +22,16 @@ export const JOB_DISPATCH = <const>{
 // precompute a log2 table since WebAssembly doesn't have a built-in log function
 const log2Table: Float32Array = makeLog2Table((1 + 2 * MAX_KERNEL_RADIUS)**2)
 
-function verifyJob_spatial_entropy_u8(job: Job): job is Job_spatial_entropy_u8 {
-  return (
-    job.jobName === 'spatial_entropy_u8' &&
-    'arrayBuffer' in job.jobArgs &&
-    job.jobArgs.arrayBuffer instanceof ArrayBuffer &&
-    job.jobArgs.arrayBuffer.byteLength > 0 &&
-    'width' in job.jobArgs &&
-    'height' in job.jobArgs
-  )
+function makeLog2Table(n: number): Float32Array {
+  // n + 1 entries
+
+  const table = new Float32Array(n + 1)
+
+  table[0] = 0
+  for (let i = 1; i <= n; ++i)
+    table[i] = Math.log2(i)
+
+  return table
 }
 
 export function perform_spatial_entropy_u8(job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports): JobResult<JobReturn_spatial_entropy_u8> {
@@ -97,4 +76,15 @@ export function perform_spatial_entropy_u8(job: Job, wasmMemory: WasmMemory, was
   inputArray.set(wasmOutputArray)
 
   return { return: { arrayBuffer }, transferables: [arrayBuffer] }
+}
+
+function verifyJob_spatial_entropy_u8(job: Job): job is Job_spatial_entropy_u8 {
+  return (
+    job.jobName === 'spatial_entropy_u8' &&
+    'arrayBuffer' in job.jobArgs &&
+    job.jobArgs.arrayBuffer instanceof ArrayBuffer &&
+    job.jobArgs.arrayBuffer.byteLength > 0 &&
+    'width' in job.jobArgs &&
+    'height' in job.jobArgs
+  )
 }

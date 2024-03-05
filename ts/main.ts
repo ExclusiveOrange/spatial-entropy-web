@@ -2,7 +2,7 @@
 
 import {B, I, L} from "./common.js"
 import { loadImageFromFile } from "./loadImageFromFile.js"
-import { JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./WorkerJobs.js"
+import { JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./WorkerJobs.types.js"
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 
 ;(() => {

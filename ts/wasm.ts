@@ -2,7 +2,7 @@
 // WebAssembly handling.
 // Copied then modified from my Circle Text project.
 
-import { WasmMemory } from "./wasmTypes.js"
+import { WasmMemory } from "./wasm.types.js"
 
 /* Example:
 // TODO: check that this is still valid, I made a bunch of changes and haven't looked over it yet
