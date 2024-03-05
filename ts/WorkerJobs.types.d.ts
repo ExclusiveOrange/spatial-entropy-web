@@ -2,8 +2,6 @@
 
 import { Job, JobError, JobSuccess } from "./WorkerJob.types.js";
 
-export { Job_spatial_entropy_u8, JobReturn_spatial_entropy_u8 } from "./spatial_entropy_u8.types.js";
-
 export type JobResult<ReturnType = any> = { return: ReturnType, transferables?: Transferable[] }
 
 // TODO: move

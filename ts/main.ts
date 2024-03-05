@@ -1,8 +1,10 @@
 // 2024.02.27 Atlee Brink
 
 import { calculateEntropyU8 } from "./calculateEntropyU8.js";
-import {B, L} from "./common.js"
+import { B, L } from "./common.js"
+import { joinColorChannelsIntoImage } from "./joinColorChannelsIntoImage.js";
 import { loadImageFromFile } from "./loadImageFromFile.js"
+import { splitImageIntoColorChannels } from "./splitImageIntoColorChannels.js";
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 
 ;(() => {
@@ -34,68 +36,32 @@ import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
   B.append(loadButton, calcButton, sourceCanvas, entropyCanvas)
 
   function onclickCalcButton() {
-    const {width, height} = sourceCanvas
-    calculateEntropy(sourceCanvasContext.getImageData(0, 0, width, height), workerQueue)
-    .then(entropy => {
-      console.log('entropy:', entropy)
-      Object.assign(entropyCanvas, {width, height})
-      entropyCanvasContext.putImageData(entropy, 0, 0)
-    })
+    const sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height)
+    calculateEntropy(sourceImageData, workerQueue)
+      .then(setEntropyImage)
   }
 
   function setReady(ready: boolean) {
     calcButton.disabled = !ready
   }
 
+  function setEntropyImage(imageData: ImageData) {
+    const {width, height} = imageData
+    Object.assign(entropyCanvas, { width, height })
+    entropyCanvasContext.putImageData(imageData, 0, 0)
+  }
+
   function setSourceImage(image: HTMLImageElement) {
-    sourceCanvas.width = image.width
-    sourceCanvas.height = image.height
+    const {width, height} = image
+    Object.assign(sourceCanvas, {width, height})
     sourceCanvasContext.drawImage(image, 0, 0)
   }
 })()
 
 async function calculateEntropy(sourceImage: ImageData, workerQueue: WorkerQueueAsync): Promise<ImageData> {
   const {width, height} = sourceImage
-
-  // TODO: splitting could be done on a webworker
-  const jobs = splitImageIntoColorChannels(sourceImage)
-    .map(channel => calculateEntropyU8(workerQueue, channel, width, height))
-
+  const channels = await splitImageIntoColorChannels(sourceImage)
+  const jobs = channels.map(c => calculateEntropyU8(workerQueue, c, width, height))
   const [c0, c1, c2] = await Promise.all(jobs)
-
-  // TODO: joining could be done on a webworker
   return joinColorChannelsIntoImage(width, height, c0, c1, c2)
-}
-
-function joinColorChannelsIntoImage(width: number, height: number, c0: Uint8Array, c1: Uint8Array, c2: Uint8Array): ImageData {
-  const image = new ImageData(width, height)
-  const imageAsU32Array = new Uint32Array(image.data.buffer)
-  const numPixels = width * height
-
-  for (let i = 0; i < numPixels; ++i)
-    imageAsU32Array[i] = 0xff000000 |
-      c0[i] |
-      c1[i] << 8 |
-      c2[i] << 16;
-
-  return image
-}
-
-function splitImageIntoColorChannels(image: ImageData): [Uint8Array, Uint8Array, Uint8Array] {
-  const {width, height} = image
-  const numPixels = width * height
-  const imageAsU32Array = new Uint32Array(image.data.buffer)
-
-  const c0 = new Uint8Array(numPixels)
-  const c1 = new Uint8Array(numPixels)
-  const c2 = new Uint8Array(numPixels)
-
-  for (let i = 0; i < numPixels; ++i) {
-    const pixel = imageAsU32Array[i]
-    c0[i] = pixel & 0xff
-    c1[i] = pixel >> 8 & 0xff
-    c2[i] = pixel >> 16 & 0xff
-  }
-
-  return [c0, c1, c2]
 }
