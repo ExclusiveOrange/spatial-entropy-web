@@ -5,7 +5,6 @@
 import { Wasm } from "./wasm.types.js"
 
 /* Example:
-// TODO: check that this is still valid, I made a bunch of changes and haven't looked over it yet
 
 const Imports = <const>{
   addNumbers: (a: number, b: number) => 0,
@@ -14,10 +13,10 @@ const Imports = <const>{
 
 try {
   const myWasm = await loadWasm("mywasm.wasm", Imports)
-  let result = myWasm.exports.addNumbers(2, 3)
+  let result = myWasm.imports.addNumbers(2, 3)
 }
 catch (err) {
-  console.err(`failed to load wasm: ${err.message}`, {cause: err})
+  throw Error(`failed to load wasm: ${err.message}`, {cause: err})
 }
 
 */
