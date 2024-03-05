@@ -4,15 +4,15 @@ import { Job, JobResult } from "../common/Job.js"
 import { JobName_splitImageIntoRGB, JobReturn_splitImageIntoRGB, verifyJob_splitImageIntoRGB } from "../common/Job_splitImageIntoRGB.js"
 
 export const JOB_DISPATCH = <const>{
-  [JobName_splitImageIntoRGB]: splitImageIntoRGB,
+  [JobName_splitImageIntoRGB]: splitImageIntoRGB
 }
 
-export function splitImageIntoRGB(job: Job): JobResult<JobReturn_splitImageIntoRGB> {
+function splitImageIntoRGB(job: Job): JobResult<JobReturn_splitImageIntoRGB> {
   if (!verifyJob_splitImageIntoRGB(job))
-    throw Error(`job parameter mismatch in splitImageIntoColorChannels()`)
+    throw Error(`job parameter mismatch in ${JobName_splitImageIntoRGB}`)
 
   const numPixels = job.jobArgs.numPixels
-  const imageAsU32Array = new Uint32Array(job.jobArgs.arrayBuffer)
+  const imageAsU32Array = new Uint32Array(job.jobArgs.image)
 
   const c0 = new Uint8Array(numPixels)
   const c1 = new Uint8Array(numPixels)

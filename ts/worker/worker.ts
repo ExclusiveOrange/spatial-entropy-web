@@ -5,7 +5,9 @@ import { Wasm, WasmMemory } from "./wasm.types.js";
 import { Job, JobError, JobSuccess, JobUID } from "../common/Job.js";
 
 import * as calculateEntropyU8 from "./calculateEntropyU8.js";
+import * as joinRGBIntoImage from "./joinRGBIntoImage.js";
 import * as splitImageIntoRGB from "./splitImageIntoRGB.js";
+import { JobName_joinRGBIntoImage } from "../common/Job_joinRGBIntoImage.js";
 
 const WASM_URL = "wasm.wasm"
 
@@ -21,6 +23,7 @@ type JobResult<ReturnType = any> = { return: ReturnType, transferables?: Transfe
 // TODO: might be possible to use the 'name' key to map to the appropriate JobResult<type>
 const JOB_DISPATCH: {[name in string]: (job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports) => JobResult} = <const>{
   ...calculateEntropyU8.JOB_DISPATCH,
+  ...joinRGBIntoImage.JOB_DISPATCH,
   ...splitImageIntoRGB.JOB_DISPATCH,
 }
 

@@ -33,7 +33,7 @@ function makeLog2Table(n: number): Float32Array {
   return table
 }
 
-export function calculateEntropyU8(job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports): JobResult<JobReturn_calculateEntropyU8> {
+function calculateEntropyU8(job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports): JobResult<JobReturn_calculateEntropyU8> {
   if (!verifyJob_calculateEntropyU8(job))
     throw Error(`job parameter mismatch in perform_calculateEntropyU8()`)
 
