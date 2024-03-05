@@ -7,7 +7,6 @@ import { Job, JobError, JobSuccess, JobUID } from "../common/Job.js";
 import * as calculateEntropyU8 from "./calculateEntropyU8.js";
 import * as joinRGBIntoImage from "./joinRGBIntoImage.js";
 import * as splitImageIntoRGB from "./splitImageIntoRGB.js";
-import { JobName_joinRGBIntoImage } from "../common/Job_joinRGBIntoImage.js";
 
 const WASM_URL = "wasm.wasm"
 
