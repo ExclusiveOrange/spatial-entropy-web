@@ -1,11 +1,11 @@
 // 2024.02.27 Atlee Brink
 
-import { JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./WorkerJobs.js";
-import { WorkerQueueAsync } from "./WorkerQueueAsync.js";
-import {B, L} from "./common.js"
+import {B, I, L} from "./common.js"
+import { loadImageFromFile } from "./loadImageFromFile.js"
+import { JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./WorkerJobs.js"
+import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 
-;import { loadImageFromFile } from "./loadImageFromFile.js";
-(() => {
+;(() => {
   const worker = new Worker('worker.js', {credentials: 'include'})
   const workerQueue = new WorkerQueueAsync(worker)
 
@@ -24,10 +24,8 @@ import {B, L} from "./common.js"
         .catch(err => console.error(`error loading image:`, err, err.cause ?? ''))
   }
 
-  const calcButton = L('button', { onclick: () => calculateEntropy(), innerHTML: `Calculate Entropy...`, disabled: true })
+  const calcButton = L('button', { onclick: onclickCalcButton, innerHTML: `Calculate Entropy...`, disabled: true })
 
-  // The display <canvas> for the input image.
-  // Used to preview the image and as the image data source.
   const sourceCanvas = L('canvas', { width: 1, height: 1 })
   const sourceCanvasContext = sourceCanvas.getContext('2d') as CanvasRenderingContext2D
   const entropyCanvas = L('canvas', { width: 1, height: 1 })
@@ -35,62 +33,14 @@ import {B, L} from "./common.js"
 
   B.append(loadButton, calcButton, sourceCanvas, entropyCanvas)
 
-  // TESTING: this works
-  // const buffer = new ArrayBuffer(100)
-  // const u8arr = new Uint8Array(buffer)
-  // for (let i = 0; i < 100; ++i)
-  //   u8arr[i] = i
-
-  // workerQueue.postJobAsync<JobResult>({ jobName: 'spatial_entropy_u8', jobArgs: {buffer} }, [buffer])
-  //   .then(ret => console.log(`main got response from worker:`, ret))
-  //   .catch(err => console.error(`main got error from worker:`, err, err.cause))
-
-  function calculateEntropy() {
-
+  function onclickCalcButton() {
     const {width, height} = sourceCanvas
-    const numPixels = width * height
-
-    const sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height)
-    const sourceArray = new Uint32Array(sourceImageData.data.buffer)
-
-    const pendingJobs = Promise.all([0, 1, 2].map(ichannel => {
-
-      const channelArray = new Uint8ClampedArray(width * height)
-      for (let i = 0; i < numPixels; ++i)
-        channelArray[i] = sourceArray[i] >> (ichannel * 8) & 255
-
-      const job: Job_spatial_entropy_u8 = {
-        jobName: 'spatial_entropy_u8',
-        jobArgs: {
-          arrayBuffer: channelArray.buffer,
-          width,
-          height
-        }
-      }
-
-      return workerQueue.postJobAsync<JobReturn_spatial_entropy_u8>(job, [job.jobArgs.arrayBuffer])
-    }))
-
-    pendingJobs.catch(err => console.error(`worker didn't calculate entropy:`, err, err?.cause ?? ''))
-    pendingJobs.then(successes => {
-      const entropyImage = new ImageData(width, height)
-      const entropyArray = new Uint32Array(entropyImage.data.buffer)
-      console.log(`successes:`, successes)
-      const c0 = new Uint8Array(successes[0].arrayBuffer)
-      const c1 = new Uint8Array(successes[1].arrayBuffer)
-      const c2 = new Uint8Array(successes[2].arrayBuffer)
-
-      for (let i = 0; i < numPixels; ++i)
-        entropyArray[i] = 0xff000000 |
-          c0[i] |
-          c1[i] << 8 |
-          c2[i] << 16;
-
-      entropyCanvas.width = width
-      entropyCanvas.height = height
-      entropyCanvasContext.putImageData(entropyImage, 0, 0)
+    calculateEntropy(sourceCanvasContext.getImageData(0, 0, width, height), workerQueue)
+    .then(entropy => {
+      console.log('entropy:', entropy)
+      Object.assign(entropyCanvas, {width, height})
+      entropyCanvasContext.putImageData(entropy, 0, 0)
     })
-
   }
 
   function setReady(ready: boolean) {
@@ -103,3 +53,59 @@ import {B, L} from "./common.js"
     sourceCanvasContext.drawImage(image, 0, 0)
   }
 })()
+
+async function calculateEntropy(sourceImage: ImageData, workerQueue: WorkerQueueAsync): Promise<ImageData> {
+  const {width, height} = sourceImage
+
+  // TODO: splitting could be done on a webworker
+  const jobs = splitImageIntoColorChannels(sourceImage).map(channel => {
+    const job: Job_spatial_entropy_u8 = {
+      jobName: 'spatial_entropy_u8',
+      jobArgs: {
+        arrayBuffer: channel.buffer,
+        width,
+        height
+      }
+    }
+    return workerQueue.postJobAsync<JobReturn_spatial_entropy_u8>(job, [job.jobArgs.arrayBuffer])
+  })
+
+  const channels = await Promise.all(jobs)
+  const [c0, c1, c2] = channels.map(c => new Uint8Array(c.arrayBuffer))
+
+  // TODO: joining could be done on a webworker
+  return joinColorChannelsIntoImage(width, height, c0, c1, c2)
+}
+
+function joinColorChannelsIntoImage(width: number, height: number, c0: Uint8Array, c1: Uint8Array, c2: Uint8Array): ImageData {
+  const image = new ImageData(width, height)
+  const imageAsU32Array = new Uint32Array(image.data.buffer)
+  const numPixels = width * height
+
+  for (let i = 0; i < numPixels; ++i)
+    imageAsU32Array[i] = 0xff000000 |
+      c0[i] |
+      c1[i] << 8 |
+      c2[i] << 16;
+
+  return image
+}
+
+function splitImageIntoColorChannels(image: ImageData): [Uint8Array, Uint8Array, Uint8Array] {
+  const {width, height} = image
+  const numPixels = width * height
+  const imageAsU32Array = new Uint32Array(image.data.buffer)
+
+  const c0 = new Uint8Array(numPixels)
+  const c1 = new Uint8Array(numPixels)
+  const c2 = new Uint8Array(numPixels)
+
+  for (let i = 0; i < numPixels; ++i) {
+    const pixel = imageAsU32Array[i]
+    c0[i] = pixel & 0xff
+    c1[i] = pixel >> 8 & 0xff
+    c2[i] = pixel >> 16 & 0xff
+  }
+
+  return [c0, c1, c2]
+}

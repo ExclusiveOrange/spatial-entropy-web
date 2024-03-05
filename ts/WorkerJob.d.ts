@@ -18,5 +18,3 @@ interface JobSuccess {
   success: true
   return: any
 }
-
-export type JobResult = JobError | JobSuccess

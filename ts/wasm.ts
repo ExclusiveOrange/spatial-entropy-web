@@ -2,7 +2,10 @@
 // WebAssembly handling.
 // Copied then modified from my Circle Text project.
 
+import { WasmMemory } from "./wasmTypes.js"
+
 /* Example:
+// TODO: check that this is still valid, I made a bunch of changes and haven't looked over it yet
 
 const Imports = <const>{
   addNumbers: (a: number, b: number) => 0,
@@ -19,21 +22,29 @@ catch (err) {
 
 */
 
+export type Wasm<Imports extends {[k in keyof any]: any}> = {
+  instance: WebAssembly.Instance
+  memory: WasmMemory
+  imports: Imports
+}
+
 export async function loadWasm
-<ExpectedExports extends {[k in keyof any]: any}>
+<Imports extends {[k in keyof any]: any}>
 (
   filename: string,
-  expectedExports: ExpectedExports
-) {
+  imports: Imports
+)
+: Promise<Wasm<Imports>>
+{
   const { instance } = await WebAssembly.instantiateStreaming(fetch(filename, { method: 'GET', credentials: 'include', mode: 'no-cors' }), {})
-  return (<const>{
+  return <const>{
     instance,
-    mem: {
+    memory: {
       initialOffset: (instance.exports.memory as WebAssembly.Memory).buffer.byteLength,
       memory: instance.exports.memory as WebAssembly.Memory,
     },
-    exports: getWasmExports<ExpectedExports>(expectedExports, instance.exports)
-  })
+    imports: getWasmExports<Imports>(imports, instance.exports)
+  }
 }
 
 export function makeWasmMemoryAtLeast(memory: WebAssembly.Memory, numBytes: number)

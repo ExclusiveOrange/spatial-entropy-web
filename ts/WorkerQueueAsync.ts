@@ -1,12 +1,12 @@
 // 2024.02.29 Atlee Brink
 // A class that provides async worker callbacks.
 
-import { Job, JobResult, JobUID } from "./WorkerJob.js"
+import { Job, JobError, JobSuccess, JobUID } from "./WorkerJob.js"
 
 export class WorkerQueueAsync {
   constructor(worker: Worker) {
     this.worker = worker
-    worker.addEventListener('message', ({ data: result }: MessageEvent<JobUID & JobResult>) => {
+    worker.addEventListener('message', ({ data: result }: MessageEvent<JobUID & (JobError | JobSuccess)>) => {
       const resolvers = this.pendingJobs.get(result.jobUid)
       if (!resolvers)
         throw Error(`worker responded to main with an invalid jobUid`)
