@@ -1,7 +1,7 @@
 // 2024.02.27 Atlee Brink
 
 import { calculateEntropy } from "./calculateEntropy.js";
-import { B, L } from "./common.js"
+import { B, L } from "../common/common.js"
 import { loadImageFromFile } from "./loadImageFromFile.js"
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 

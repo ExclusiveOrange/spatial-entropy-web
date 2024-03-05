@@ -5,9 +5,11 @@ export interface JobUID {
 }
 
 export interface Job {
-  jobName: string // such as "spatial_entropy_u8", or whatever was agreed upon
+  jobName: string // see each Job_*.ts file for the respective jobName string
   jobArgs: any    // depends on the job
 }
+
+export type JobResult<ReturnType = any> = { return: ReturnType, transferables?: Transferable[] }
 
 export interface JobError {
   success: false

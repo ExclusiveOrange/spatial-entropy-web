@@ -2,7 +2,7 @@
 // high level interface to spatial_entropy_u8
 
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
-import { JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./spatial_entropy_u8.types.js"
+import { JobName_calculateEntropyU8, JobReturn_calculateEntropyU8, Job_calculateEntropyU8 } from "../common/Job_calculateEntropyU8.js"
 
 export async function calculateEntropyU8(
   workerQueue: WorkerQueueAsync,
@@ -12,14 +12,14 @@ export async function calculateEntropyU8(
 )
 : Promise<Uint8Array>
 {
-  const job: Job_spatial_entropy_u8 = {
-    jobName: 'spatial_entropy_u8',
+  const job: Job_calculateEntropyU8 = <const>{
+    jobName: JobName_calculateEntropyU8,
     jobArgs: {
       arrayBuffer: array.buffer,
       width,
       height
     }
   }
-  const result = await workerQueue.postJobAsync<JobReturn_spatial_entropy_u8>(job, [job.jobArgs.arrayBuffer])
+  const result = await workerQueue.postJobAsync<JobReturn_calculateEntropyU8>(job, [job.jobArgs.arrayBuffer])
   return new Uint8Array(result.arrayBuffer)
 }

@@ -6,14 +6,13 @@
   },
 
   "files": [
-    "worker.ts",
-    "limits.ts",
-    "spatial_entropy_u8.ts",
-    "spatial_entropy_u8.types.d.ts",
-    "wasm.ts",
-    "wasm.types.d.ts",
-    "WorkerJob.types.d.ts",
-    "WorkerJobs.types.d.ts",
     "../c/spatial_entropy_u8.ts",
+    "common/Job.d.ts",
+    "common/Job_calculateEntropyU8.ts",
+    "common/limits.ts",
+    "worker/calculateEntropyU8.ts",
+    "worker/wasm.ts",
+    "worker/wasm.types.d.ts",
+    "worker/worker.ts",
   ],
 }

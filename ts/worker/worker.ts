@@ -2,24 +2,24 @@
 
 import { loadWasm } from "./wasm.js";
 import { Wasm, WasmMemory } from "./wasm.types.js";
-import { Job, JobError, JobSuccess, JobUID } from "./WorkerJob.types.js";
+import { Job, JobError, JobSuccess, JobUID } from "../common/Job.js";
 
-import * as spatial_entropy_u8 from "./spatial_entropy_u8.js";
+import * as calculateEntropyU8 from "./calculateEntropyU8.js";
 
 const WASM_URL = "wasm.wasm"
 
 // specify the wasm function signatures that should be imported with loadWasm
 const WASM_IMPORTS = <const>{
-  ...spatial_entropy_u8.WASM_IMPORTS
+  ...calculateEntropyU8.WASM_IMPORTS
 }
-
 type WasmImports = typeof WASM_IMPORTS
-type JobName = keyof WasmImports
+
 type JobResult<ReturnType = any> = { return: ReturnType, transferables?: Transferable[] }
 
 // maps job name to function
-const JOB_DISPATCH: {[name in JobName]: (job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports) => JobResult} = <const>{
-  ...spatial_entropy_u8.JOB_DISPATCH
+// TODO: might be possible to use the 'name' key to map to the appropriate JobResult<type>
+const JOB_DISPATCH: {[name in string]: (job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports) => JobResult} = <const>{
+  ...calculateEntropyU8.JOB_DISPATCH
 }
 
 // start loading (fetching) the WebAssembly file immediately
@@ -50,7 +50,7 @@ self.onmessage = async ({ data: job }: MessageEvent<JobUID & Job>) => {
 
 // if job has anything to transfer back then it should return an array of transferables
 function performJob(job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports): JobResult {
-  const fn = JOB_DISPATCH[job.jobName as JobName]
+  const fn = JOB_DISPATCH[job.jobName]
   if (!fn)
     throw Error(`worker doesn't know how to do that job`)
   return fn(job, wasmMemory, wasmImports)

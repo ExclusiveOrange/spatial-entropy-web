@@ -13,7 +13,7 @@ dist/%.js: js/ts/*.js
 dist/wasm.wasm: c/*.c c/Makefile
 	cd c && make
 
-js/ts/*.js: tsconfig*.json ts/tsconfig*.json ts/*.ts webpack.config.js
+js/ts/*.js: tsconfig*.json ts/tsconfig*.json ts/common/*.ts ts/main/*.ts ts/worker/*.ts webpack.config.js
 	tsc -b -f tsconfig.json
 
 clean:
