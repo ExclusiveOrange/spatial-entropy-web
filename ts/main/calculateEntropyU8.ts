@@ -1,5 +1,4 @@
 // 2024.03.04 Atlee Brink
-// high level interface to spatial_entropy_u8
 
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 import { JobName_calculateEntropyU8, JobReturn_calculateEntropyU8, Job_calculateEntropyU8 } from "../common/Job_calculateEntropyU8.js"

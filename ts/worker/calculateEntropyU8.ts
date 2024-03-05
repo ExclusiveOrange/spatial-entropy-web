@@ -1,5 +1,4 @@
 // 2024.03.04 Atlee Brink
-// wasm interface to spatial_entropy_u8
 
 import { Job, JobResult } from "../common/Job.js"
 import { MAX_KERNEL_RADIUS } from "../common/limits.js"
@@ -7,7 +6,7 @@ import { WasmMemory } from "./wasm.types.js"
 
 import { spatial_entropy_u8 } from "../../c/spatial_entropy_u8.js";
 import { makeWasmMemoryAtLeast } from "./wasm.js"
-import { JobName_calculateEntropyU8, JobReturn_calculateEntropyU8, Job_calculateEntropyU8 } from "../common/Job_calculateEntropyU8.js";
+import { JobName_calculateEntropyU8, JobReturn_calculateEntropyU8, verifyJob_calculateEntropyU8 } from "../common/Job_calculateEntropyU8.js";
 
 // specify the particular wasm function signature
 export const WASM_IMPORTS = <const>{
@@ -16,7 +15,7 @@ export const WASM_IMPORTS = <const>{
 type WasmImports = typeof WASM_IMPORTS
 
 export const JOB_DISPATCH = <const>{
-  [JobName_calculateEntropyU8]: perform_calculateEntropyU8,
+  [JobName_calculateEntropyU8]: calculateEntropyU8,
 }
 
 // precompute a log2 table since WebAssembly doesn't have a built-in log function
@@ -34,9 +33,9 @@ function makeLog2Table(n: number): Float32Array {
   return table
 }
 
-export function perform_calculateEntropyU8(job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports): JobResult<JobReturn_calculateEntropyU8> {
+export function calculateEntropyU8(job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports): JobResult<JobReturn_calculateEntropyU8> {
   if (!verifyJob_calculateEntropyU8(job))
-    throw Error(`job parameter mismatch in perform_spatial_entropy_u8()`)
+    throw Error(`job parameter mismatch in perform_calculateEntropyU8()`)
 
   // TODO: get radius from job args
   const radius = 5
@@ -75,16 +74,8 @@ export function perform_calculateEntropyU8(job: Job, wasmMemory: WasmMemory, was
   const wasmOutputArray = new Uint8Array(wasmMemory.memory.buffer, outputArrayOffset, inputArray.length)
   inputArray.set(wasmOutputArray)
 
-  return { return: { arrayBuffer }, transferables: [arrayBuffer] }
-}
-
-function verifyJob_calculateEntropyU8(job: Job): job is Job_calculateEntropyU8 {
-  return (
-    job.jobName === JobName_calculateEntropyU8 &&
-    'arrayBuffer' in job.jobArgs &&
-    job.jobArgs.arrayBuffer instanceof ArrayBuffer &&
-    job.jobArgs.arrayBuffer.byteLength > 0 &&
-    'width' in job.jobArgs &&
-    'height' in job.jobArgs
-  )
+  return {
+    return: { arrayBuffer },
+    transferables: [arrayBuffer]
+  }
 }

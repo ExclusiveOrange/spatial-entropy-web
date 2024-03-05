@@ -5,6 +5,7 @@ import { Wasm, WasmMemory } from "./wasm.types.js";
 import { Job, JobError, JobSuccess, JobUID } from "../common/Job.js";
 
 import * as calculateEntropyU8 from "./calculateEntropyU8.js";
+import * as splitImageIntoRGB from "./splitImageIntoRGB.js";
 
 const WASM_URL = "wasm.wasm"
 
@@ -19,7 +20,8 @@ type JobResult<ReturnType = any> = { return: ReturnType, transferables?: Transfe
 // maps job name to function
 // TODO: might be possible to use the 'name' key to map to the appropriate JobResult<type>
 const JOB_DISPATCH: {[name in string]: (job: Job, wasmMemory: WasmMemory, wasmImports: WasmImports) => JobResult} = <const>{
-  ...calculateEntropyU8.JOB_DISPATCH
+  ...calculateEntropyU8.JOB_DISPATCH,
+  ...splitImageIntoRGB.JOB_DISPATCH,
 }
 
 // start loading (fetching) the WebAssembly file immediately
@@ -44,7 +46,7 @@ self.onmessage = async ({ data: job }: MessageEvent<JobUID & Job>) => {
     const result = performJob(job, wasm.memory, wasm.imports)
     postJobSuccess(job.jobUid, result.return, result.transferables)
   } catch (err) {
-    postJobError(job.jobUid, Error(`while trying to perform job "${job.jobName}"`, { cause: err }))
+    postJobError(job.jobUid, Error(`while trying to perform job "${job.jobName}": ${err}`, { cause: err }))
   }
 }
 
