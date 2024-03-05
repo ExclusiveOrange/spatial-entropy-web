@@ -1,13 +1,35 @@
 // 2024.03.04 Atlee Brink
 
-import { Job } from "./WorkerJob.js"
-import { JobResult, JobReturn_spatial_entropy_u8, Job_spatial_entropy_u8 } from "./WorkerJobs.js"
+import { Job, JobSuccess } from "./WorkerJob.js"
+import { JobResult } from "./WorkerJobs.js"
 import { MAX_KERNEL_RADIUS } from "./limits.js"
 import { makeLog2Table } from "./makeLog2Table.js"
 import { WasmMemory } from "./wasmTypes.js"
 
 import { spatial_entropy_u8 } from "../c/spatial_entropy_u8.js";
 import { makeWasmMemoryAtLeast } from "./wasm.js"
+
+export interface Job_spatial_entropy_u8 extends Job {
+  jobName: 'spatial_entropy_u8'
+  jobArgs: {
+    arrayBuffer: ArrayBuffer // should also be put in the Transferable[] when posting message to worker
+    width: number
+    height: number
+  }
+}
+
+export interface JobReturn_spatial_entropy_u8 {
+  arrayBuffer: ArrayBuffer // should also be put in the Transferable[] when posting message to main
+}
+
+export type JobSuccess_spatial_entropy_u8 = JobSuccess & JobReturn_spatial_entropy_u8
+
+export interface Job_splitColorChannels extends Job {
+  jobName: 'splitColorChannels'
+  jobArgs: {
+    arrayBuffer: ArrayBuffer // rgba, numpixels is bytelength / 4
+  }
+}
 
 // specify the particular wasm function signature
 export const WASM_IMPORTS = <const>{

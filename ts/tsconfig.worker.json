@@ -10,6 +10,7 @@
     "limits.ts",
     "makeLog2Table.ts",
     "spatial_entropy_u8.ts",
+    "spatial_entropy_u8.job.d.ts",
     "wasm.ts",
     "wasmTypes.ts",
     "WorkerJob.d.ts",
