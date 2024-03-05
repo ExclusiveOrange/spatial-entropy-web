@@ -8,7 +8,6 @@
   "files": [
     "worker.ts",
     "limits.ts",
-    "makeLog2Table.ts",
     "spatial_entropy_u8.ts",
     "spatial_entropy_u8.types.d.ts",
     "wasm.ts",
