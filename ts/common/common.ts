@@ -24,3 +24,15 @@ export function L<K extends keyof HTMLElementTagNameMap>(
   }
   return l
 }
+
+// type Tuple from: https://stackoverflow.com/a/65914848
+// nice way way to generate the type of an arbitrary length (but known at compile time) tuple with a single element type
+export type Tuple<T, N extends number, A extends any[] = []> = A extends { length: N } ? A : Tuple<T, N, [...A, T]>
+
+// repeats f, n times, and returns the results as a tuple
+export function rep<N extends number, T>(n: N, f: () => T) {
+  const arr = new Array<T>(n)
+  for (let i = 0; i <= n; ++i)
+    arr[i] = f()
+  return arr as Tuple<T, N>
+}

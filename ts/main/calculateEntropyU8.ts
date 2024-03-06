@@ -11,14 +11,15 @@ export async function calculateEntropyU8(
 )
 : Promise<Uint8Array>
 {
-  const job: Job_calculateEntropyU8 = <const>{
-    jobName: JobName_calculateEntropyU8,
-    jobArgs: {
-      arrayBuffer: array.buffer,
-      width,
-      height
-    }
-  }
-  const result = await workerQueue.postJobAsync<JobReturn_calculateEntropyU8>(job, [job.jobArgs.arrayBuffer])
+  const
+    job: Job_calculateEntropyU8 = <const>{
+      jobName: JobName_calculateEntropyU8,
+      jobArgs: {
+        arrayBuffer: array.buffer,
+        width,
+        height
+      }
+    },
+    result = await workerQueue.postJobAsync<JobReturn_calculateEntropyU8>(job, [job.jobArgs.arrayBuffer])
   return new Uint8Array(result.arrayBuffer)
 }

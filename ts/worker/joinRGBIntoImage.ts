@@ -12,11 +12,12 @@ function joinRGBIntoImage(job: Job): JobResult<JobReturn_joinRGBIntoImage> {
   if (!verifyJob_joinRGBIntoImage(job))
     throw Error(`job parameter mismatch in ${JobName_joinRGBIntoImage}`)
 
-  const numPixels = job.jobArgs.numPixels
-  const image = new Uint32Array(numPixels)
-  const r = new Uint8Array(job.jobArgs.r)
-  const g = new Uint8Array(job.jobArgs.g)
-  const b = new Uint8Array(job.jobArgs.b)
+  const
+    numPixels = job.jobArgs.numPixels,
+    image = new Uint32Array(numPixels),
+    r = new Uint8Array(job.jobArgs.r),
+    g = new Uint8Array(job.jobArgs.g),
+    b = new Uint8Array(job.jobArgs.b)
 
   for (let i = 0; i < numPixels; ++i)
     image[i] = 0xff000000 |

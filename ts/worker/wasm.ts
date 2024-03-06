@@ -46,15 +46,12 @@ export function makeWasmMemoryAtLeast(memory: WebAssembly.Memory, numBytes: numb
   if (deficit <= 0)
     return;
 
-  const pageSize = 65536; // WebAssembly.Memory page size is always 64KiB
-  const numPagesToGrow = Math.ceil(deficit / pageSize);
-  const numBytesToGrow = numPagesToGrow * pageSize;
+  const
+    pageSize = 65536, // WebAssembly.Memory page size is always 64KiB
+    numPagesToGrow = Math.ceil(deficit / pageSize),
+    numBytesToGrow = numPagesToGrow * pageSize
 
-  console.log(`\
-growing WebAssembly memory by \
-${numPagesToGrow} page${numPagesToGrow === 1 ? '' : 's'} (${numBytesToGrow.toLocaleString()} bytes), \
-new size ${(memory.buffer.byteLength + numBytesToGrow).toLocaleString()} bytes`);
-
+  console.log(`growing WebAssembly memory by ${numPagesToGrow} page${numPagesToGrow === 1 ? '' : 's'} (${numBytesToGrow.toLocaleString()} bytes), new size ${(memory.buffer.byteLength + numBytesToGrow).toLocaleString()} bytes`);
   memory.grow(numPagesToGrow);
 }
 
@@ -72,15 +69,17 @@ function getWasmExports
     if (!(key in exports))
       throw Error(`wasm exports are missing: ${key}: ${expectedType}`)
 
-    const exportedValue = exports[key]
-    const actualType = typeof exportedValue
+    const
+      exportedValue = exports[key],
+      actualType = typeof exportedValue
 
     if (actualType !== expectedType)
       throw Error(`wasm exports has: ${key}: ${actualType} but it should have type ${expectedType}`)
 
     if (expectedType === 'function') {
-      const expectedNumParams = value.length
-      const actualNumParams = (exportedValue as Function).length
+      const
+        expectedNumParams = value.length,
+        actualNumParams = (exportedValue as Function).length
 
       if (actualNumParams !== expectedNumParams)
         throw Error(`exported function ${key} takes ${actualNumParams} parameters but should take ${expectedNumParams} parameters`)

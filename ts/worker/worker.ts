@@ -44,8 +44,9 @@ let getWasm = async (): Promise<Wasm<WasmImports>> => {
 
 self.onmessage = async ({ data: job }: MessageEvent<JobUID & Job>) => {
   try {
-    const wasm = await getWasm()
-    const result = performJob(job, wasm.memory, wasm.imports)
+    const
+      wasm = await getWasm(),
+      result = performJob(job, wasm.memory, wasm.imports)
     postJobSuccess(job.jobUid, result.return, result.transferables)
   } catch (err) {
     postJobError(job.jobUid, Error(`while trying to perform job "${job.jobName}": ${err}`, { cause: err }))

@@ -6,9 +6,10 @@ import { splitImageIntoRGB } from "./splitImageIntoRGB.js"
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 
 export async function calculateEntropy(sourceImage: ImageData, workerQueue: WorkerQueueAsync): Promise<ImageData> {
-  const {width, height} = sourceImage
-  const channels = await splitImageIntoRGB(workerQueue, sourceImage)
-  const jobs = channels.map(c => calculateEntropyU8(workerQueue, c, width, height))
-  const [r, g, b] = await Promise.all(jobs)
+  const
+    {width, height} = sourceImage,
+    channels = await splitImageIntoRGB(workerQueue, sourceImage),
+    jobs = channels.map(c => calculateEntropyU8(workerQueue, c, width, height)),
+    [r, g, b] = await Promise.all(jobs)
   return joinRGBIntoImage(workerQueue, r, g, b, width, height) 
 }

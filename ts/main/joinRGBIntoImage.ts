@@ -13,15 +13,16 @@ export async function joinRGBIntoImage(
 )
 : Promise<ImageData>
 {
-  const job: Job_joinRGBIntoImage = <const>{
-    jobName: JobName_joinRGBIntoImage,
-    jobArgs: {
-      r: r.buffer,
-      g: g.buffer,
-      b: b.buffer,
-      numPixels: width * height
-    }
-  }
-  const result = await workerQueue.postJobAsync<JobReturn_joinRGBIntoImage>(job, [r.buffer, g.buffer, b.buffer])
+  const
+    job: Job_joinRGBIntoImage = <const>{
+      jobName: JobName_joinRGBIntoImage,
+      jobArgs: {
+        r: r.buffer,
+        g: g.buffer,
+        b: b.buffer,
+        numPixels: width * height
+      }
+    },
+    result = await workerQueue.postJobAsync<JobReturn_joinRGBIntoImage>(job, [r.buffer, g.buffer, b.buffer])
   return new ImageData(new Uint8ClampedArray(result.image), width, height)
 }

@@ -23,13 +23,10 @@ const log2Table: Float32Array = makeLog2Table((1 + 2 * MAX_KERNEL_RADIUS)**2)
 
 function makeLog2Table(n: number): Float32Array {
   // n + 1 entries
-
   const table = new Float32Array(n + 1)
-
   table[0] = 0
   for (let i = 1; i <= n; ++i)
     table[i] = Math.log2(i)
-
   return table
 }
 

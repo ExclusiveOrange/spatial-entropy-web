@@ -11,12 +11,12 @@ function splitImageIntoRGB(job: Job): JobResult<JobReturn_splitImageIntoRGB> {
   if (!verifyJob_splitImageIntoRGB(job))
     throw Error(`job parameter mismatch in ${JobName_splitImageIntoRGB}`)
 
-  const numPixels = job.jobArgs.numPixels
-  const imageAsU32Array = new Uint32Array(job.jobArgs.image)
-
-  const c0 = new Uint8Array(numPixels)
-  const c1 = new Uint8Array(numPixels)
-  const c2 = new Uint8Array(numPixels)
+  const
+    numPixels = job.jobArgs.numPixels,
+    imageAsU32Array = new Uint32Array(job.jobArgs.image),
+    c0 = new Uint8Array(numPixels),
+    c1 = new Uint8Array(numPixels),
+    c2 = new Uint8Array(numPixels)
 
   for (let i = 0; i < numPixels; ++i) {
     const pixel = imageAsU32Array[i]
@@ -25,9 +25,10 @@ function splitImageIntoRGB(job: Job): JobResult<JobReturn_splitImageIntoRGB> {
     c2[i] = pixel >> 16 & 0xff
   }
 
-  const r = c0.buffer
-  const g = c1.buffer
-  const b = c2.buffer
+  const
+    r = c0.buffer,
+    g = c1.buffer,
+    b = c2.buffer
 
   return {
     return: { r, g, b },

@@ -19,10 +19,11 @@ export class WorkerQueueAsync {
   }
 
   postJobAsync<ReturnType>(job: Job, transferables?: Transferable[]): Promise<ReturnType> {
-    const jobUid = this.id++
-    const jobWithUid: Job & JobUID = { jobUid, ...job }
+    const
+      jobUid = this.id++,
+      jobWithUid: Job & JobUID = { jobUid, ...job }
     return new Promise<ReturnType>((resolve, reject) => {
-      this.pendingJobs.set(jobUid, {resolve, reject})
+      this.pendingJobs.set(jobUid, { resolve, reject })
       if (transferables)
         this.worker.postMessage(jobWithUid, transferables)
       else
