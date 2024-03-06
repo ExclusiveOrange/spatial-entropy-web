@@ -10,6 +10,7 @@ export interface Job_calculateEntropyU8 extends Job {
     arrayBuffer: ArrayBuffer // should also be put in the Transferable[] when posting message to worker
     width: number
     height: number
+    kernelRadius: number
   }
 }
 
@@ -25,6 +26,7 @@ export function verifyJob_calculateEntropyU8(job: Job): job is Job_calculateEntr
     job.jobArgs.arrayBuffer instanceof ArrayBuffer &&
     job.jobArgs.arrayBuffer.byteLength > 0 &&
     'width' in job.jobArgs &&
-    'height' in job.jobArgs
+    'height' in job.jobArgs &&
+    'kernelRadius' in job.jobArgs
   )
 }

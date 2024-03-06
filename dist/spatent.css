@@ -9,9 +9,17 @@ html, body {
   height: 100dvh;
 }
 
+label {
+  display: inline-flex;
+  align-items: center;
+}
+
 .control-box {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em;
 }
 
 .image-box {
@@ -21,13 +29,14 @@ html, body {
   display: flex;
   justify-content: center;
   margin-left: auto;
+  margin-right: auto;
 
   width: min(var(--width-from-height), 100dvw);
+  aspect-ratio: var(--aspect-ratio);
 
   position: relative;
 
   /* debugging */
-  background-color: aqua;
   outline: 1px solid black;
 }
 

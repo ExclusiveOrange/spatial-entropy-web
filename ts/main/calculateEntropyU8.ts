@@ -7,7 +7,8 @@ export async function calculateEntropyU8(
   workerQueue: WorkerQueueAsync,
   array: Uint8Array,
   width: number,
-  height: number
+  height: number,
+  kernelRadius: number
 )
 : Promise<Uint8Array>
 {
@@ -17,7 +18,8 @@ export async function calculateEntropyU8(
       jobArgs: {
         arrayBuffer: array.buffer,
         width,
-        height
+        height,
+        kernelRadius,
       }
     },
     result = await workerQueue.postJobAsync<JobReturn_calculateEntropyU8>(job, [job.jobArgs.arrayBuffer])

@@ -34,11 +34,9 @@ function calculateEntropyU8(job: Job, wasmMemory: WasmMemory, wasmImports: WasmI
   if (!verifyJob_calculateEntropyU8(job))
     throw Error(`job parameter mismatch in perform_calculateEntropyU8()`)
 
-  // TODO: get radius from job args
-  const radius = 5
-
-  const arrayBuffer = job.jobArgs.arrayBuffer
-  const inputArray = new Uint8Array(arrayBuffer)
+  const
+    arrayBuffer = job.jobArgs.arrayBuffer,
+    inputArray = new Uint8Array(arrayBuffer)
 
   let memOffset = wasmMemory.initialOffset
 
@@ -60,7 +58,7 @@ function calculateEntropyU8(job: Job, wasmMemory: WasmMemory, wasmImports: WasmI
   wasmInputArray.set(inputArray)
 
   wasmImports.spatial_entropy_u8(
-    radius,
+    job.jobArgs.kernelRadius,
     log2TableOffset,
     job.jobArgs.width,
     job.jobArgs.height,
