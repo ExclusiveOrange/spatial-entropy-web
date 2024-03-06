@@ -1,7 +1,7 @@
 // 2024.02.27 Atlee Brink
 
 import { calculateEntropy } from "./calculateEntropy.js";
-import { B, L, O, rep } from "../common/common.js"
+import { B, D, L, O, rep } from "../common/common.js"
 import { loadImageFromFile } from "./loadImageFromFile.js"
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 
@@ -16,10 +16,13 @@ function main() {
   const
     worker = new Worker('worker.js', { credentials: 'include' }),
     workerQueue = new WorkerQueueAsync(worker),
+    controlBox = L('div', {className: 'control-box'}),
     imageFileInput = L('input', { onchange: onchangeImageFileInput, type: 'file', accept: 'image/*', hidden: true }),
     loadButton = L('button', { onclick: () => imageFileInput.click(), innerHTML: 'Choose Image...' }, {}, imageFileInput),
     calcButton = L('button', { onclick: onclickCalcButton, innerHTML: `Calculate Entropy...`, disabled: true }),
-    [sourceCanvas, entropyCanvas] = rep(2, () => L('canvas', { width: 1, height: 1 })),
+    imageBox = L('div', {className: 'image-box'}),
+    canvases = rep(2, () => L('canvas', { width: 1, height: 1 })),
+    [sourceCanvas, entropyCanvas] = canvases,
     [sourceCanvasContext, entropyCanvasContext] = [sourceCanvas, entropyCanvas].map(c => c.getContext('2d') as CanvasRenderingContext2D)
 
   /* TODO
@@ -35,8 +38,15 @@ function main() {
       
     Not sure if I want the whole thing to be vertically centered or just leave it aligned to the top.
   */
+  
+  // observe height of controlBox and set --control-box-height in CSS
+  new ResizeObserver(roe => D.documentElement.style.setProperty('--control-box-height', `${roe[0].contentBoxSize[0].blockSize}px`))
+    .observe(controlBox)
 
-  B.append(loadButton, calcButton, sourceCanvas, entropyCanvas)
+  controlBox.append(loadButton, calcButton)
+  imageBox.append(sourceCanvas, entropyCanvas)
+
+  B.append(controlBox, imageBox)
 
   function onchangeImageFileInput(e: Event) {
     const
@@ -46,7 +56,7 @@ function main() {
       loadImageFromFile(file)
         .then(image => {
           setSourceImage(image)
-          setReady(true)
+          showCanvas(sourceCanvas)
         })
         .catch(err => console.error(`error loading image:`, err, err.cause ?? ''))
   }
@@ -63,13 +73,18 @@ function main() {
     entropyCanvasContext.putImageData(imageData, 0, 0)
   }
 
-  function setReady(ready: boolean) {
-    calcButton.disabled = !ready
+  function setImageBoxAspectRatio(width: number, height: number) {
+    imageBox.style.setProperty('--aspect-ratio', `${width / height}`)
   }
 
   function setSourceImage(image: HTMLImageElement) {
     const { width, height } = image
     O.assign(sourceCanvas, { width, height })
     sourceCanvasContext.drawImage(image, 0, 0)
+    setImageBoxAspectRatio(width, height)
+  }
+
+  function showCanvas(canvas: HTMLCanvasElement) {
+    canvases.forEach(c => c.hidden = c !== canvas)
   }
 }

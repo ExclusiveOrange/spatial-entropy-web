@@ -1,0 +1,40 @@
+:root {
+  --control-box-height: 0px; /* set in js */
+}
+
+html, body {
+  padding: 0;
+  margin: 0;
+  width: 100dvw;
+  height: 100dvh;
+}
+
+.control-box {
+  display: flex;
+  justify-content: center;
+}
+
+.image-box {
+  --aspect-ratio: 1; /* set in js */
+  --width-from-height: calc((100dvh - var(--control-box-height)) * var(--aspect-ratio));
+
+  display: flex;
+  justify-content: center;
+  margin-left: auto;
+
+  width: min(var(--width-from-height), 100dvw);
+
+  position: relative;
+
+  /* debugging */
+  background-color: aqua;
+  outline: 1px solid black;
+}
+
+.image-box > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

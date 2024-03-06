@@ -6,5 +6,6 @@
 *.d.js
 *.tsbuildinfo
 *.map
+.js_timestamp
 js/
 node_modules/
