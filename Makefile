@@ -22,21 +22,8 @@ $(JS_FILES): .js_timestamp
 dist/wasm.wasm: c/*.c c/Makefile
 	cd c && make
 
-# dist/main.js dist/worker.js: $(JS_FILES)
-# 	$(info running dist/%.js rule...)
-# 	npm run build
-# 	@touch dist/*.js
-
-# dist/wasm.wasm: c/*.c c/Makefile
-# 	$(info running dist/wasm.wasm rule...)
-# 	cd c && make
-
-# $(JS_FILES): tsconfig*.json ts/tsconfig*.json c/*.ts ts/common/*.ts ts/main/*.ts ts/worker/*.ts webpack.config.js
-# 	$(info running js/**/%.js rule...)
-# 	$(info $$JS_FILES is [$(JS_FILES)])
-# 	tsc -b -f tsconfig.json
-
 clean:
+	-$(RM) .js_timestamp
 	-$(RM) -rf js
 	-$(RM) dist/*.js
 	cd c && make clean
