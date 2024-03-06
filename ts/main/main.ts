@@ -22,6 +22,20 @@ function main() {
     [sourceCanvas, entropyCanvas] = rep(2, () => L('canvas', { width: 1, height: 1 })),
     [sourceCanvasContext, entropyCanvasContext] = [sourceCanvas, entropyCanvas].map(c => c.getContext('2d') as CanvasRenderingContext2D)
 
+  /* TODO
+  
+    UI layout:
+      Set body (or whatever) to 100dvw, 100dvh, no scrolling. Zooming is fine.
+
+      control panel on top: flexbox, keep contents clustered in center, wrap if necessary
+        monitor height and set to a CSS var (--control-panel-height, or something)
+      one image container immediately below; this displays either the source image or the entropy image
+        use aspect ratio CSS var, set when image is loaded (will be same for source and entropy of course)
+        use CSS to make this container as big as possible within (100dvh - control-panel-height) height and (100dvw) width
+      
+    Not sure if I want the whole thing to be vertically centered or just leave it aligned to the top.
+  */
+
   B.append(loadButton, calcButton, sourceCanvas, entropyCanvas)
 
   function onchangeImageFileInput(e: Event) {
