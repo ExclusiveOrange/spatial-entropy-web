@@ -1,7 +1,7 @@
 // 2024.02.27 Atlee Brink
 
 import { calculateEntropy } from "./calculateEntropy.js";
-import { B, D, L, O, rep } from "../common/common.js"
+import { B, D, L, O } from "../common/common.js"
 import { loadImageFromFile } from "./loadImageFromFile.js"
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 import { MAX_KERNEL_RADIUS } from "../common/limits.js";
@@ -32,7 +32,7 @@ function main() {
     calcButton = L('button', { innerHTML: `Calculate Entropy...`, onclick: onclickCalcButton }),
     toggleButton = L('button', { innerHTML: `Toggle Image`, onclick: onclickToggleButton }),
     imageBox = L('div', { className: 'image-box' }),
-    canvases = rep(2, () => L('canvas', { width: 1, height: 1 })),
+    canvases = [1, 2].map(() => L('canvas', { width: 1, height: 1 })),
     [sourceCanvas, entropyCanvas] = canvases,
     [sourceCanvasContext, entropyCanvasContext] = [sourceCanvas, entropyCanvas].map(c => c.getContext('2d') as CanvasRenderingContext2D)
 
