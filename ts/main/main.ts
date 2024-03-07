@@ -15,6 +15,7 @@ catch (err) {
 
 function main() {
   const
+    toggleKey = ' ', // Space
     initialKernelRadius = 5 // TODO: set and get in browser storage
 
   const
@@ -28,6 +29,7 @@ function main() {
     radiusInputs = [radiusNumberInput, radiusSliderInput],
     radiusSliderLabel = L('label', { innerHTML: `kernel radius:` }),
     calcButton = L('button', { innerHTML: `Calculate Entropy...`, onclick: onclickCalcButton }),
+    toggleButton = L('button', { innerHTML: `Toggle Image`, onclick: onclickToggleButton }),
     imageBox = L('div', { className: 'image-box' }),
     canvases = rep(2, () => L('canvas', { width: 1, height: 1 })),
     [sourceCanvas, entropyCanvas] = canvases,
@@ -39,9 +41,29 @@ function main() {
     .observe(controlBox)
 
   radiusSliderLabel.append(radiusSliderInput, radiusNumberInput)
-  controlBox.append(loadButton, radiusSliderLabel, calcButton)
+  controlBox.append(loadButton, radiusSliderLabel, calcButton, toggleButton)
   imageBox.append(sourceCanvas, entropyCanvas)
   B.append(controlBox, imageBox)
+
+  disableEntropyControls()
+
+  D.addEventListener('keydown', e => D.activeElement === B && onkeydownBody(e))
+
+  function disableAllControls(disable = true) {
+    enableAllControls(!disable)
+  }
+
+  function disableEntropyControls(disable = true) {
+    enableEntropyControls(!disable)
+  }
+
+  function enableAllControls(enable = true) {
+    [loadButton, ...radiusInputs, calcButton, toggleButton].forEach(i => i.disabled = !enable)
+  }
+
+  function enableEntropyControls(enable = true) {
+    [...radiusInputs, calcButton, toggleButton].forEach(i => i.disabled = !enable)
+  }
 
   function getKernelRadius() {
     return radiusSliderInput.valueAsNumber
@@ -56,21 +78,40 @@ function main() {
         .then(image => {
           setSourceImage(image)
           showCanvas(sourceCanvas)
+          enableEntropyControls()
         })
         .catch(err => console.error(`error loading image:`, err, err.cause ?? ''))
   }
 
   function onclickCalcButton() {
+    disableAllControls()
     const sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height)
     calculateEntropy(workerQueue, sourceImageData, getKernelRadius())
-      .then(setEntropyImage)
+      .then(image => {
+        setEntropyImage(image)
+        enableAllControls()
+      })
+  }
+
+  function onclickToggleButton() {
+    entropyCanvas.hidden = sourceCanvas.hidden
+    sourceCanvas.hidden = !sourceCanvas.hidden
   }
 
   function oninputRadius(e: Event) {
     const
       input = e.target as HTMLInputElement,
-      newValue = input.valueAsNumber
+      rawNewValue = input.valueAsNumber,
+      newValue = Math.max(1, Math.min(rawNewValue, MAX_KERNEL_RADIUS))
     radiusInputs.forEach(i => i !== input && (i.valueAsNumber = newValue))
+    if (rawNewValue !== newValue)
+      input.valueAsNumber = newValue
+  }
+  
+  function onkeydownBody(e: KeyboardEvent) {
+    if (!e.repeat)
+      if (e.key === toggleKey)
+        toggleButton.click()
   }
 
   function onkeydownRadiusNumberInput(e: KeyboardEvent) {

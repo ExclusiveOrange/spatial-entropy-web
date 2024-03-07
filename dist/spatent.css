@@ -9,9 +9,18 @@ html, body {
   height: 100dvh;
 }
 
+* {
+  user-select: none;
+}
+
+input[type='number'] {
+  user-select: unset;
+}
+
 label {
   display: inline-flex;
   align-items: center;
+  gap: 0.5em;
 }
 
 .control-box {
