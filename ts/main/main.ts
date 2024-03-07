@@ -5,6 +5,7 @@ import { B, D, L, O, rep } from "../common/common.js"
 import { loadImageFromFile } from "./loadImageFromFile.js"
 import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 import { MAX_KERNEL_RADIUS } from "../common/limits.js";
+import { sanitizeInteger } from "../common/sanitize.js";
 
 try {
   main()
@@ -15,10 +16,10 @@ catch (err) {
 
 function main() {
   const
+    storageKeyBase = 'spatial-entropy',
     toggleKey = ' ', // Space
-    initialKernelRadius = 5 // TODO: set and get in browser storage
-
-  const
+    kernelRadiusKey = 'kernel-radius',
+    initialKernelRadius = sanitizeInteger(getSettingFromStorage(kernelRadiusKey), 1, MAX_KERNEL_RADIUS, MAX_KERNEL_RADIUS),
     worker = new Worker('worker.js', { credentials: 'include' }),
     workerQueue = new WorkerQueueAsync(worker),
     controlBox = L('div', { className: 'control-box' }),
@@ -69,6 +70,14 @@ function main() {
     return radiusSliderInput.valueAsNumber
   }
 
+  function getSettingFromStorage(key: string): any {
+    return localStorage.getItem(makeFullStorageKey(key))
+  }
+
+  function makeFullStorageKey(key: string): string {
+    return `${storageKeyBase}/${key}`
+  }
+
   function onchangeImageFileInput(e: Event) {
     const
       input = e.target as HTMLInputElement,
@@ -85,12 +94,15 @@ function main() {
 
   function onclickCalcButton() {
     disableAllControls()
-    const sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height)
-    calculateEntropy(workerQueue, sourceImageData, getKernelRadius())
+    const
+      sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height),
+      kernelRadius = getKernelRadius()
+    calculateEntropy(workerQueue, sourceImageData, kernelRadius)
       .then(image => {
         setEntropyImage(image)
         enableAllControls()
       })
+    setSettingToStorage(kernelRadiusKey, kernelRadius)
   }
 
   function onclickToggleButton() {
@@ -137,6 +149,10 @@ function main() {
     O.assign(sourceCanvas, { width, height })
     sourceCanvasContext.drawImage(image, 0, 0)
     setImageBoxAspectRatio(width, height)
+  }
+
+  function setSettingToStorage(key: string, value: any) {
+    localStorage.setItem(makeFullStorageKey(key), value)
   }
 
   function showCanvas(canvas: HTMLCanvasElement) {

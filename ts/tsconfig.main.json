@@ -12,6 +12,7 @@
     "common/Job_joinRGBIntoImage.ts",
     "common/Job_splitImageIntoRGB.ts",
     "common/limits.ts",
+    "common/sanitize.ts",
     "main/calculateEntropy.ts",
     "main/calculateEntropyU8.ts",
     "main/joinRGBIntoImage.ts",
