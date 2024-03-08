@@ -6,13 +6,18 @@ export const
   B = D.body,
   O = Object
 
+export function downloadCanvas(canvas: HTMLCanvasElement, type: string, quality: number, filename: string) {
+  const image = canvas.toDataURL(type, quality)
+  L('a', {download: filename, href: image}).click()
+}
+
 // Shorthand for document.createElement and setting properties and styles and appending children.
-export function L<K extends keyof HTMLElementTagNameMap>(
+export function L<K extends keyof HTMLElementTagNameMap, P extends Partial<HTMLElementTagNameMap[K]>>(
   tagName: K,
-  props?: Partial<HTMLElementTagNameMap[K]>,
+  props?: P,
   style?: Partial<CSSStyleDeclaration>,
   ...children: (string | Node)[]
-): HTMLElementTagNameMap[K] {
+): HTMLElementTagNameMap[K] & P {
   const l = D.createElement(tagName)
   if (props) {
     O.assign(l, props)
@@ -22,5 +27,5 @@ export function L<K extends keyof HTMLElementTagNameMap>(
         l.append(...children)
     }
   }
-  return l
+  return l as typeof l & P
 }
