@@ -44,8 +44,8 @@ function main() {
 
   radiusSliderLabel.append(radiusSliderInput, radiusNumberInput)
   controlBox.append(loadButton, radiusSliderLabel, calcButton, toggleButton)
-  imageBox.append(sourceCanvas, entropyCanvas, busyIndicator)
-  B.append(controlBox, imageBox)
+  imageBox.append(sourceCanvas, entropyCanvas)
+  B.append(controlBox, imageBox, busyIndicator)
 
   disableEntropyControls()
 
@@ -87,14 +87,17 @@ function main() {
     const
       input = e.target as HTMLInputElement,
       file = input.files?.[0]
-    if (file)
+    if (file) {
+      showBusyIndicator()
       loadImageFromFile(file)
         .then(image => {
           setSourceImage(image)
           showCanvas(sourceCanvas)
           enableEntropyControls()
         })
+        .finally(() => hideBusyIndicator())
         .catch(err => console.error(`error loading image:`, err, err.cause ?? ''))
+    }
   }
 
   function onclickCalcButton() {

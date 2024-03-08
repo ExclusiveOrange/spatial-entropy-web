@@ -34,7 +34,7 @@ label {
   --spin-duration: 1s;
 
   position: absolute;
-  width: 75%;
+  width: min(67dvw, 67dvh);
   aspect-ratio: 1;
   left: 50%;
   top: 50%;
