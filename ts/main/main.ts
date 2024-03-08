@@ -34,7 +34,8 @@ function main() {
     imageBox = L('div', { className: 'image-box' }),
     canvases = [1, 2].map(() => L('canvas', { width: 1, height: 1 })),
     [sourceCanvas, entropyCanvas] = canvases,
-    [sourceCanvasContext, entropyCanvasContext] = [sourceCanvas, entropyCanvas].map(c => c.getContext('2d') as CanvasRenderingContext2D)
+    [sourceCanvasContext, entropyCanvasContext] = [sourceCanvas, entropyCanvas].map(c => c.getContext('2d') as CanvasRenderingContext2D),
+    busyIndicator = L('div', { className: 'busy-indicator' }, {opacity: '0'})
 
   // observe height of controlBox and set --control-box-height in CSS,
   // this is so other elements (imageBox) can calculate their own maximum height
@@ -43,7 +44,7 @@ function main() {
 
   radiusSliderLabel.append(radiusSliderInput, radiusNumberInput)
   controlBox.append(loadButton, radiusSliderLabel, calcButton, toggleButton)
-  imageBox.append(sourceCanvas, entropyCanvas)
+  imageBox.append(sourceCanvas, entropyCanvas, busyIndicator)
   B.append(controlBox, imageBox)
 
   disableEntropyControls()
@@ -74,6 +75,10 @@ function main() {
     return localStorage.getItem(makeFullStorageKey(key))
   }
 
+  function hideBusyIndicator(hide = true) {
+    showBusyIndicator(!hide)
+  }
+
   function makeFullStorageKey(key: string): string {
     return `${storageKeyBase}/${key}`
   }
@@ -82,7 +87,7 @@ function main() {
     const
       input = e.target as HTMLInputElement,
       file = input.files?.[0]
-    if (file instanceof File)
+    if (file)
       loadImageFromFile(file)
         .then(image => {
           setSourceImage(image)
@@ -97,10 +102,12 @@ function main() {
     const
       sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height),
       kernelRadius = getKernelRadius()
+    showBusyIndicator()
     calculateEntropy(workerQueue, sourceImageData, kernelRadius)
       .then(image => {
         setEntropyImage(image)
         enableAllControls()
+        hideBusyIndicator()
       })
     setSettingToStorage(kernelRadiusKey, kernelRadius)
   }
@@ -134,8 +141,8 @@ function main() {
   }
 
   function setEntropyImage(imageData: ImageData) {
-    const { width, height } = imageData
-    O.assign(entropyCanvas, { width, height })
+    entropyCanvas.width = imageData.width
+    entropyCanvas.height = imageData.height
     entropyCanvasContext.putImageData(imageData, 0, 0)
     showCanvas(entropyCanvas)
   }
@@ -145,10 +152,10 @@ function main() {
   }
 
   function setSourceImage(image: HTMLImageElement) {
-    const { width, height } = image
-    O.assign(sourceCanvas, { width, height })
+    sourceCanvas.width = image.width
+    sourceCanvas.height = image.height
     sourceCanvasContext.drawImage(image, 0, 0)
-    setImageBoxAspectRatio(width, height)
+    setImageBoxAspectRatio(sourceCanvas.width, sourceCanvas.height)
   }
 
   function setSettingToStorage(key: string, value: any) {
@@ -157,5 +164,9 @@ function main() {
 
   function showCanvas(canvas: HTMLCanvasElement) {
     canvases.forEach(c => c.hidden = c !== canvas)
+  }
+
+  function showBusyIndicator(show = true) {
+    busyIndicator.style.opacity = show ? '1' : '0'
   }
 }

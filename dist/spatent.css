@@ -2,15 +2,20 @@
   --control-box-height: 0px; /* set in js */
 }
 
+* {
+  user-select: none;
+}
+
 html, body {
   padding: 0;
   margin: 0;
   width: 100dvw;
   height: 100dvh;
+  overflow: hidden;
 }
 
-* {
-  user-select: none;
+body {
+  position: relative;
 }
 
 input[type='number'] {
@@ -21,6 +26,41 @@ label {
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
+}
+
+/* visual style copied from my project circle-text but implemented in a simpler way here */
+.busy-indicator {
+  --fade-duration: 333ms;
+  --spin-duration: 1s;
+
+  position: absolute;
+  width: 75%;
+  aspect-ratio: 1;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  transition: opacity var(--fade-duration) ease-in-out;
+  pointer-events: none;
+  backdrop-filter: invert(50%);
+  --mask: radial-gradient(circle closest-side, #0000 68%, #fff 70%, #fff 90%, #0000 92%);
+  -webkit-mask: var(--mask);
+  mask: var(--mask);
+}
+.busy-indicator::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  background: conic-gradient(white 0deg, transparent 45deg, black 90deg, transparent 135deg, white 180deg, transparent 225deg, black 270deg, transparent 315deg, white 360deg);
+  animation: spin linear var(--spin-duration) infinite;
+}
+
+@keyframes spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
 }
 
 .control-box {
@@ -49,7 +89,7 @@ label {
   outline: 1px solid black;
 }
 
-.image-box > * {
+.image-box > canvas {
   position: absolute;
   top: 0;
   left: 0;
