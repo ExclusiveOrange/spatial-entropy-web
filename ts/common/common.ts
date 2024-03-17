@@ -8,7 +8,7 @@ export const
 
 export function downloadCanvas(canvas: HTMLCanvasElement, type: string, quality: number, filename: string) {
   const image = canvas.toDataURL(type, quality)
-  L('a', {download: filename, href: image}).click()
+  L('a', {download: filename, href: image, target: '_blank'}).click()
 }
 
 // Shorthand for document.createElement and setting properties and styles and appending children.
