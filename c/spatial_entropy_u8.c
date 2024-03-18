@@ -18,6 +18,20 @@
 
 */
 
+/* Complicated:
+
+  C := counts[256]
+  > prime C for first pixel
+  left to right:
+    lead in
+    middle
+    trail out
+  top to bottom:
+    left to right
+    down
+    right to left
+*/
+
 #include <stdint.h>
 
 static inline int min(int a, int b) {
@@ -32,7 +46,7 @@ __attribute__((export_name("spatial_entropy_u8")))
 // WARNING: if you change this signature then change it in the corresponding d.ts file
 void spatial_entropy_u8(
   const int radius,
-  const float log2_table[(radius + 1 + radius) * (radius + 1 + radius)],
+  const float log2_table[(radius + 1 + radius) * (radius + 1 + radius) + 1], // [0]=0, [i]=i*log2(i)
   const int width,
   const int height,
   const uint8_t in[height][width],
@@ -47,6 +61,7 @@ void spatial_entropy_u8(
     for (int x = 0; x < width; ++x) {
       int counts[256];
 
+      // #pragma unroll 16 // doesn't help or makes worse, don't use
       for (int i = 0; i < 256; ++i)
         counts[i] = 0;
 
@@ -61,19 +76,15 @@ void spatial_entropy_u8(
         }
       }
 
-      const int pixel_count = (kernel_y_max - kernel_y_min) * (kernel_x_max - kernel_x_min);
-      const float log2_pixel_count = log2_table[pixel_count];
-
       float entropy = 0.f;
+      #pragma unroll 16 // helps a bit on i7-9700k
       for (int i = 0; i < 256; ++i) {
         const int value_count = counts[i];
-        entropy -= value_count  * (log2_table[value_count] - log2_pixel_count);
+        entropy -= log2_table[value_count];
       }
 
-      entropy /= pixel_count;
-
-      const float entropy_limit = log2_pixel_count - log2_table[1]; // -log2(1 / count)
-      float proportional_entropy = entropy / entropy_limit;
+      const int pixel_count = (kernel_y_max - kernel_y_min) * (kernel_x_max - kernel_x_min);
+      float proportional_entropy = 1 + entropy / log2_table[pixel_count];
 
       // was experimental in spatial-entropy-qt and I like it so I'm keeping it
       proportional_entropy *= proportional_entropy;

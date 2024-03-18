@@ -26,7 +26,7 @@ function makeLog2Table(n: number): Float32Array {
   const table = new Float32Array(n + 1)
   table[0] = 0
   for (let i = 1; i <= n; ++i)
-    table[i] = Math.log2(i)
+    table[i] = i * Math.log2(i)
   return table
 }
 
