@@ -4,6 +4,20 @@
 // based on my own C++ implementation from:
 // https://github.com/ExclusiveOrange/spatial-entropy-qt/blob/master/entropyfast.cpp
 
+/* TODO: optimizations
+
+  Simple:
+    use separate inner loops for the boundaries of the image where the kernel goes outside,
+    versus the interior of the image where the kernel is fully inside.
+
+  Complicated:
+    Adjust 'counts' on the edges of the kernel as the kernel moves.
+    That ought to require far fewer memory reads, as only the leading and trailing edges need be read.
+    However it is more complicated to keep track of exactly which pixels need to be added or subtracted
+    when starting a run or moving down a row; also it may be more efficient to scan alternately left-right.
+
+*/
+
 #include <stdint.h>
 
 static inline int min(int a, int b) {
@@ -33,7 +47,6 @@ void spatial_entropy_u8(
     for (int x = 0; x < width; ++x) {
       int counts[256];
 
-      // #pragma unroll 16
       for (int i = 0; i < 256; ++i)
         counts[i] = 0;
 
