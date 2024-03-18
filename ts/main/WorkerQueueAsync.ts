@@ -2,8 +2,9 @@
 // A class that provides async worker callbacks.
 
 import { Job, JobError, JobSuccess, JobUID } from "../common/Job.js"
+import { IWorkerQueue } from "./IWorkerQueue.js"
 
-export class WorkerQueueAsync {
+export class WorkerQueueAsync implements IWorkerQueue {
   constructor(worker: Worker) {
     this.worker = worker
     worker.addEventListener('message', ({ data: result }: MessageEvent<JobUID & (JobError | JobSuccess)>) => {

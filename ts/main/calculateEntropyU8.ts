@@ -1,10 +1,10 @@
 // 2024.03.04 Atlee Brink
 
-import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 import { JobName_calculateEntropyU8, JobReturn_calculateEntropyU8, Job_calculateEntropyU8 } from "../common/Job_calculateEntropyU8.js"
+import { IWorkerQueue } from "./IWorkerQueue.js"
 
 export async function calculateEntropyU8(
-  workerQueue: WorkerQueueAsync,
+  workerQueue: IWorkerQueue,
   array: Uint8Array,
   width: number,
   height: number,

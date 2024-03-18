@@ -1,10 +1,10 @@
 // 2024.03.05 Atlee Brink
 
 import { JobName_joinRGBIntoImage, JobReturn_joinRGBIntoImage, Job_joinRGBIntoImage } from "../common/Job_joinRGBIntoImage.js";
-import { WorkerQueueAsync } from "./WorkerQueueAsync.js";
+import { IWorkerQueue } from "./IWorkerQueue.js";
 
 export async function joinRGBIntoImage(
-  workerQueue: WorkerQueueAsync,
+  workerQueue: IWorkerQueue,
   r: Uint8Array,
   g: Uint8Array,
   b: Uint8Array,

@@ -1,10 +1,10 @@
 // 2024.03.05 Atlee Brink
 
 import { JobName_splitImageIntoRGB, JobReturn_splitImageIntoRGB, Job_splitImageIntoRGB } from "../common/Job_splitImageIntoRGB.js";
-import { WorkerQueueAsync } from "./WorkerQueueAsync.js";
+import { IWorkerQueue } from "./IWorkerQueue.js";
 
 export async function splitImageIntoRGB(
-  workerQueue: WorkerQueueAsync,
+  workerQueue: IWorkerQueue,
   image: ImageData
 )
 : Promise<[Uint8Array, Uint8Array, Uint8Array]>

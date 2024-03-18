@@ -1,11 +1,11 @@
 // 2024.02.27 Atlee Brink
 
 import { calculateEntropy } from "./calculateEntropy.js";
-import { B, D, L, O, downloadCanvas } from "../common/common.js"
+import { B, D, L, downloadCanvas } from "../common/common.js"
 import { loadImageFromFile } from "./loadImageFromFile.js"
-import { WorkerQueueAsync } from "./WorkerQueueAsync.js"
 import { MAX_KERNEL_RADIUS } from "../common/limits.js";
 import { sanitizeInteger } from "../common/sanitize.js";
+import { MultiWorkers } from "./MultiWorkers.js";
 
 try {
   main()
@@ -29,8 +29,7 @@ function main() {
     toggleKey = ' ', // Space
     kernelRadiusKey = 'kernel-radius',
     initialKernelRadius = sanitizeInteger(getSettingFromStorage(kernelRadiusKey), 1, MAX_KERNEL_RADIUS, MAX_KERNEL_RADIUS),
-    worker = new Worker('worker.js', { credentials: 'include' }),
-    workerQueue = new WorkerQueueAsync(worker),
+    workers = new MultiWorkers(3, 'worker.js', { credentials: 'include' }), // 3 because r, g, b
     controlBox = L('div', { className: 'control-box' }),
     imageFileInput = L('input', { type: 'file', accept: 'image/*', onchange: onchangeImageFileInput, hidden: true }),
     loadButton = L('button', { [stateKey]: State.all ^ State.busy, onclick: () => imageFileInput.click(), innerHTML: 'Choose Image...' }, {}, imageFileInput),
@@ -110,7 +109,7 @@ function main() {
       kernelRadius = getKernelRadius()
     setControlsForState(State.busy)
     showBusyIndicator()
-    calculateEntropy(workerQueue, sourceImageData, kernelRadius)
+    calculateEntropy(workers, sourceImageData, kernelRadius)
       .then(image => {
         setEntropyImage(image)
         showCanvas(entropyCanvas)
@@ -162,6 +161,10 @@ function main() {
     return dot === -1 ? fn : fn.slice(0, dot)
   }
 
+  function setControlsForState(state: State) {
+    allControls.forEach(c => c.disabled = !(c[stateKey] & state))
+  }
+
   function setEntropyImage(imageData: ImageData) {
     entropyCanvas.width = imageData.width
     entropyCanvas.height = imageData.height
@@ -183,15 +186,11 @@ function main() {
     setImageBoxAspectRatio(sourceCanvas.width, sourceCanvas.height)
   }
 
-  function setControlsForState(state: State) {
-    allControls.forEach(c => c.disabled = !(c[stateKey] & state))
+  function showBusyIndicator(show = true) {
+    busyIndicator.style.opacity = show ? '1' : '0'
   }
 
   function showCanvas(canvas: HTMLCanvasElement) {
     canvases.forEach(c => c.hidden = c !== canvas)
-  }
-
-  function showBusyIndicator(show = true) {
-    busyIndicator.style.opacity = show ? '1' : '0'
   }
 }
