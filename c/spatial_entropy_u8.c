@@ -42,6 +42,26 @@ static inline int max(int a, int b) {
   return a > b ? a : b;
 }
 
+uint8_t calculate_pixel_entropy(
+  const float *log2_table, // [max_num_kernel_pixels + 1]
+  const int counts[256],
+  const int pixel_count
+) {
+  float entropy = 0.f;
+  #pragma unroll 16 // helps a bit on i7-9700k
+  for (int i = 0; i < 256; ++i) {
+    const int value_count = counts[i];
+    entropy -= log2_table[value_count];
+  }
+
+  float proportional_entropy = 1 + entropy / log2_table[pixel_count];
+
+  // was experimental in spatial-entropy-qt and I like it so I'm keeping it
+  proportional_entropy *= proportional_entropy;
+
+  return (uint8_t)(255.f * proportional_entropy);
+}
+
 __attribute__((export_name("spatial_entropy_u8")))
 // WARNING: if you change this signature then change it in the corresponding d.ts file
 void spatial_entropy_u8(
@@ -51,7 +71,9 @@ void spatial_entropy_u8(
   const int height,
   const uint8_t in[height][width],
   uint8_t out[height][width]
-) {
+)
+// original: inefficient kernel collection
+{
   for (int y = 0; y < height; ++y) {
     uint8_t *p_output_row = out[y];
 
@@ -76,20 +98,8 @@ void spatial_entropy_u8(
         }
       }
 
-      float entropy = 0.f;
-      #pragma unroll 16 // helps a bit on i7-9700k
-      for (int i = 0; i < 256; ++i) {
-        const int value_count = counts[i];
-        entropy -= log2_table[value_count];
-      }
-
       const int pixel_count = (kernel_y_max - kernel_y_min) * (kernel_x_max - kernel_x_min);
-      float proportional_entropy = 1 + entropy / log2_table[pixel_count];
-
-      // was experimental in spatial-entropy-qt and I like it so I'm keeping it
-      proportional_entropy *= proportional_entropy;
-
-      p_output_row[x] = (uint8_t)(255.f * proportional_entropy);
+      p_output_row[x] = calculate_pixel_entropy(log2_table, counts, pixel_count);
     }
   }
 }
