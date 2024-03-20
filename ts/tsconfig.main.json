@@ -15,6 +15,7 @@
     "common/sanitize.ts",
     "main/calculateEntropy.ts",
     "main/calculateEntropyU8.ts",
+    "main/encodeImageToDataURL.ts",
     "main/IWorkerQueue.d.ts",
     "main/joinRGBIntoImage.ts",
     "main/loadImageFromFile.ts",

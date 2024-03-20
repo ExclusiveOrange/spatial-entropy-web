@@ -1,11 +1,12 @@
 // 2024.02.27 Atlee Brink
 
 import { calculateEntropy } from "./calculateEntropy.js";
-import { B, D, L, downloadCanvas } from "../common/common.js"
+import { B, D, L } from "../common/common.js"
 import { loadImageFromFile } from "./loadImageFromFile.js"
 import { MAX_KERNEL_RADIUS } from "../common/limits.js";
 import { sanitizeInteger } from "../common/sanitize.js";
 import { MultiWorkers } from "./MultiWorkers.js";
+import { encodeImageToDataURL } from "./encodeImageToDataURL.js";
 
 try {
   main()
@@ -30,6 +31,7 @@ function main() {
     kernelRadiusKey = 'kernel-radius',
     initialKernelRadius = sanitizeInteger(getSettingFromStorage(kernelRadiusKey), 1, MAX_KERNEL_RADIUS, MAX_KERNEL_RADIUS),
     workers = new MultiWorkers(3, 'worker.js', { credentials: 'include' }), // 3 because r, g, b
+    pageHeader = L('div', { className: 'page-header' }),
     controlBox = L('div', { className: 'control-box' }),
     imageFileInput = L('input', { type: 'file', accept: 'image/*', onchange: onchangeImageFileInput, hidden: true }),
     loadButton = L('button', { [stateKey]: State.all ^ State.busy, onclick: () => imageFileInput.click(), innerHTML: 'Choose Image...' }, {}, imageFileInput),
@@ -44,22 +46,42 @@ function main() {
     canvases = [1, 2].map(() => L('canvas', { width: 1, height: 1 })),
     [sourceCanvas, entropyCanvas] = canvases,
     [sourceCanvasContext, entropyCanvasContext] = [sourceCanvas, entropyCanvas].map(c => c.getContext('2d') as CanvasRenderingContext2D),
-    busyIndicator = L('div', { className: 'busy-indicator' }, { opacity: '0' })
+    busyIndicator = L('div', { className: 'busy-indicator' }, { opacity: '0' }),
+    gitHubLogo = L('img', { alt: "link to the GitHub repo for this web page", src: "./github-mark_60x60.webp" }, { aspectRatio: '60 / 60' }),
+    gitHubLink = L('a', { className: 'gitHub-link', href: "https://github.com/ExclusiveOrange/spatial-entropy-web" }, { lineHeight: '0' }, gitHubLogo),
+    dummyGitHubLinkForBalance = L('div', {className: 'dummy-gitHub-link'})
 
   let
     sourceFileName = '',
     state = State.init,
     calcedKernelRadius = initialKernelRadius
 
+  // The following observers help me cope with the limitations of CSS or of my understanding of CSS.
+
   // observe height of controlBox and set --control-box-height in CSS,
   // this is so other elements (imageBox) can calculate their own maximum height
-  new ResizeObserver(roe => D.documentElement.style.setProperty('--control-box-height', `${roe[0].borderBoxSize[0].blockSize}px`))
+  new ResizeObserver(roe => {
+    const
+      borderBoxHeight = roe[0].borderBoxSize[0].blockSize,
+      contentBoxHeight = roe[0].contentBoxSize[0].blockSize
+    B.style.setProperty('--control-box-height', `${borderBoxHeight}px`)
+    B.style.setProperty('--control-box-vpadding', `${borderBoxHeight - contentBoxHeight}px`)
+  })
     .observe(controlBox)
 
+  // observe height of a button (doesn't matter which) and set height of gitHubLogo to match
+  new ResizeObserver(roe => gitHubLogo.style.setProperty('height', `calc(var(--control-box-vpadding) + ${roe[0].borderBoxSize[0].blockSize}px)`))
+    .observe(loadButton)
+  
+  // observe width of gitHubLink and set max-width of dummyGitHubLink
+  new ResizeObserver(roe => dummyGitHubLinkForBalance.style.setProperty('max-width', `${roe[0].borderBoxSize[0].inlineSize}px`))
+    .observe(gitHubLink)
+
   radiusSliderLabel.append(radiusSliderInput, radiusNumberInput)
-  controlBox.append(loadButton, radiusSliderLabel, calcButton, toggleButton, saveButton)
+  controlBox.append(loadButton, radiusSliderLabel, calcButton, toggleButton, saveButton, gitHubLink)
+  pageHeader.append(dummyGitHubLinkForBalance, controlBox, gitHubLink)
   imageBox.append(sourceCanvas, entropyCanvas)
-  B.append(controlBox, imageBox, busyIndicator)
+  B.append(pageHeader, imageBox, busyIndicator)
 
   D.addEventListener('keydown', e => D.activeElement === B && onkeydownBody(e))
 
@@ -124,8 +146,19 @@ function main() {
   }
 
   function onclickSaveButton() {
-    const d = 1 + 2 * calcedKernelRadius
-    downloadCanvas(entropyCanvas, 'png', 1, `${removeFileExtension(sourceFileName)} entropy ${d}x${d}.png`)
+    const
+      d = 1 + 2 * calcedKernelRadius,
+      filename = `${removeFileExtension(sourceFileName)} entropy ${d}x${d}.png`
+    setControlsForState(State.busy)
+    showBusyIndicator()
+    encodeImageToDataURL(entropyCanvas, 'png', 1)
+      .then(imageDataURL => {
+        L('a', { download: filename, href: imageDataURL, target: '_blank' }).click()
+      })
+      .finally(() => {
+        setControlsForState(state)
+        hideBusyIndicator()
+      })
   }
 
   function onclickToggleButton() {
