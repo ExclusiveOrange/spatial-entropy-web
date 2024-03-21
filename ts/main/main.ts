@@ -6,7 +6,7 @@ import { loadImageFromFile } from "./loadImageFromFile.js"
 import { MAX_KERNEL_RADIUS } from "../common/limits.js";
 import { sanitizeInteger } from "../common/sanitize.js";
 import { MultiWorkers } from "./MultiWorkers.js";
-import { encodeImageToObjectURL } from "./encodeImageToObjectURL.js";
+import { downloadCanvasImage } from "./downloadCanvasImage.js";
 
 try {
   main()
@@ -87,16 +87,21 @@ function main() {
 
   setControlsForState(state)
 
+  async function busy<T>(promise: Promise<T>): Promise<T> {
+    setControlsForState(State.busy)
+    busyIndicator.style.opacity = '1'
+    return await promise.finally(() => {
+      setControlsForState(state)
+      busyIndicator.style.opacity = '0'
+    })
+  }
+
   function getKernelRadius() {
     return radiusSliderInput.valueAsNumber
   }
 
   function getSettingFromStorage(key: string): any {
     return localStorage.getItem(makeFullStorageKey(key))
-  }
-
-  function hideBusyIndicator(hide = true) {
-    showBusyIndicator(!hide)
   }
 
   function makeFullStorageKey(key: string): string {
@@ -108,20 +113,18 @@ function main() {
       input = e.target as HTMLInputElement,
       file = input.files?.[0]
     if (file) {
-      showBusyIndicator()
-      sourceFileName = file.name
-      loadImageFromFile(file)
-        .then(image => {
-          setSourceImage(image)
-          showCanvas(sourceCanvas)
-          state |= State.haveSource
-          state &= ~State.haveEntropy
-        })
-        .finally(() => {
-          setControlsForState(state)
-          hideBusyIndicator()
-        })
-        .catch(err => console.error(`error loading image:`, err, err.cause ?? ''))
+      const maybeFileName = file.name
+      busy(
+        loadImageFromFile(file)
+          .then(image => {
+            sourceFileName = maybeFileName
+            setSourceImage(image)
+            showCanvas(sourceCanvas)
+            state |= State.haveSource
+            state &= ~State.haveEntropy
+          })
+      )
+      .catch(err => console.error(`error loading image:`, err, err.cause ?? ''))
     }
   }
 
@@ -129,19 +132,15 @@ function main() {
     const
       sourceImageData = sourceCanvasContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height),
       kernelRadius = getKernelRadius()
-    setControlsForState(State.busy)
-    showBusyIndicator()
-    calculateEntropy(workers, sourceImageData, kernelRadius)
-      .then(image => {
-        setEntropyImage(image)
-        showCanvas(entropyCanvas)
-        state |= State.haveEntropy
-        calcedKernelRadius = kernelRadius
-      })
-      .finally(() => {
-        setControlsForState(state)
-        hideBusyIndicator()
-      })
+    busy(
+      calculateEntropy(workers, sourceImageData, kernelRadius)
+        .then(image => {
+          setEntropyImage(image)
+          showCanvas(entropyCanvas)
+          state |= State.haveEntropy
+          calcedKernelRadius = kernelRadius
+        })
+    )
     setSettingToStorage(kernelRadiusKey, kernelRadius)
   }
 
@@ -149,17 +148,9 @@ function main() {
     const
       d = 1 + 2 * calcedKernelRadius,
       filename = `${removeFileExtension(sourceFileName)} entropy ${d}x${d}.png`
-    setControlsForState(State.busy)
-    showBusyIndicator()
-    encodeImageToObjectURL(entropyCanvas, 'png', 1)
-      .then(imageDataURL => {
-        L('a', { download: filename, href: imageDataURL, target: '_blank' }).click()
-        setTimeout(() => URL.revokeObjectURL(imageDataURL), 0)
-      })
-      .finally(() => {
-        setControlsForState(state)
-        hideBusyIndicator()
-      })
+    busy(
+      downloadCanvasImage(entropyCanvas, { type: 'image/png', quality: 1 }, filename)
+    )
   }
 
   function onclickToggleButton() {
@@ -218,10 +209,6 @@ function main() {
     sourceCanvas.height = image.height
     sourceCanvasContext.drawImage(image, 0, 0)
     setImageBoxAspectRatio(sourceCanvas.width, sourceCanvas.height)
-  }
-
-  function showBusyIndicator(show = true) {
-    busyIndicator.style.opacity = show ? '1' : '0'
   }
 
   function showCanvas(canvas: HTMLCanvasElement) {
