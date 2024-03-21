@@ -6,7 +6,7 @@ import { loadImageFromFile } from "./loadImageFromFile.js"
 import { MAX_KERNEL_RADIUS } from "../common/limits.js";
 import { sanitizeInteger } from "../common/sanitize.js";
 import { MultiWorkers } from "./MultiWorkers.js";
-import { encodeImageToDataURL } from "./encodeImageToDataURL.js";
+import { encodeImageToObjectURL } from "./encodeImageToObjectURL.js";
 
 try {
   main()
@@ -151,9 +151,10 @@ function main() {
       filename = `${removeFileExtension(sourceFileName)} entropy ${d}x${d}.png`
     setControlsForState(State.busy)
     showBusyIndicator()
-    encodeImageToDataURL(entropyCanvas, 'png', 1)
+    encodeImageToObjectURL(entropyCanvas, 'png', 1)
       .then(imageDataURL => {
         L('a', { download: filename, href: imageDataURL, target: '_blank' }).click()
+        setTimeout(() => URL.revokeObjectURL(imageDataURL), 0)
       })
       .finally(() => {
         setControlsForState(state)
